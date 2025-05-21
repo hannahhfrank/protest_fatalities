@@ -1,30 +1,13 @@
 import pandas as pd
 import numpy as np
 from functions import clustering,preprocess_min_max_group
-from sklearn.metrics import mean_squared_error
 import matplotlib.pyplot as plt
 import json
-import itertools
-from matplotlib.lines import Line2D
 from dtaidistance import dtw
-from scipy.cluster.hierarchy import linkage, fcluster,dendrogram
-import geopandas as gpd
+from scipy.cluster.hierarchy import linkage,fcluster
 import matplotlib as mpl
-from mpl_toolkits.axes_grid1 import make_axes_locatable
-from matplotlib import cm 
-from sklearn.linear_model import LinearRegression,Lasso,Ridge
-import statsmodels.api as sm
-import numpy as np
-from tslearn.metrics import dtw
-import statistics
-from scipy.spatial.distance import euclidean
-from statsmodels.iolib.summary2 import summary_col
 from tslearn.clustering import silhouette_score
-from dtaidistance import dtw
-from scipy.cluster.hierarchy import linkage, fcluster,dendrogram
 from scipy.spatial.distance import squareform
-from statsmodels.stats.anova import anova_lm
-from statsmodels.iolib.summary2 import summary_col
 import os 
 os.environ['PATH'] = "/Library/TeX/texbin:" + os.environ.get('PATH', '')
 mpl.rcParams['text.usetex'] = True
@@ -34,16 +17,11 @@ mpl.rcParams['text.latex.preamble'] = r'\usepackage{lmodern}\usepackage[T1]{font
 import warnings
 warnings.simplefilter(action='ignore', category=FutureWarning)
 
-
-# Simple random forest
 random_grid = {'n_estimators': [int(x) for x in np.linspace(start = 10, stop = 2000, num = 7)],
                'max_depth': [int(x) for x in np.linspace(10, 50, num = 5)]}
 
 param_grid_lasso = {'alpha': [0.0001, 0.001, 0.01, 0.1, 0.5, 1, 2, 5, 10]}
 
-# Country definitions: http://ksgleditsch.com/statelist.html
-
-# List of microstates: 
 micro_states={"Dominica":54,
               "Grenada":55,
               "Saint Lucia":56,
@@ -69,25 +47,16 @@ micro_states={"Dominica":54,
               "Samoa":990}
 
 df=pd.read_csv("data/df.csv",index_col=0)
-
-# Exclude micro states
 df = df[~df['gw_codes'].isin(list(micro_states.values()))]
 df = df.reset_index(drop=True)
-
-# Lagged dependent variable
 preprocess_min_max_group(df,"fatalities","country")
-
 df['fatalities_norm_lag1'] = df.groupby('gw_codes')['fatalities_norm'].shift(1).fillna(0)
 df["SP.POP.TOTL_log"]=np.log(df["SP.POP.TOTL"])
 df["NY.GDP.PCAP.CD_log"]=np.log(df["NY.GDP.PCAP.CD"])
 df["fatalities_log"]=np.log(df["fatalities"]+1)
-
 df.isnull().any()
 
-######################
-### Dynamic models ###
-######################
-
+# Get clusters
 countries=df.country.unique()
 final_dynamic_linear=pd.DataFrame()
 shapes_ols={}
@@ -124,18 +93,11 @@ for c in countries:
 with open("data/ols_shapes_reg.json", 'w') as json_file:
     json.dump(shapes_ols, json_file)
  
-###################################
-### Clustering of the centroids ###
-###################################
-
+# Clustering of the centroids 
 final_dynamic_linear=pd.read_csv("data/preds_dynamic_linear_reg.csv",index_col=0)  
- 
 with open("data/ols_shapes_reg.json", 'r') as json_file:
     shapes_rf = json.load(json_file)
-    
 shapes_rf = dict(filter(lambda item: item[0].startswith("dols_"), shapes_rf.items()))
-
-
 score_test=-1
 for k in [3,5,7]:
     df_cen=pd.DataFrame()
@@ -148,25 +110,20 @@ for k in [3,5,7]:
     
     arr=df_cen[[0,1,2,3,4,5,6,7,8,9,10,11]].values
     rows_without_nan = []
-    # Iterate over each row in the dataset
     for row in arr:
         row=row.astype(float)
-        # Remove missing values from the row and append to the list
         rows_without_nan.append(row[~np.isnan(row)])
-    
     distance_matrix = dtw.distance_matrix_fast(rows_without_nan)    
     condensed_dist_matrix = squareform(distance_matrix)
     linkage_matrix = linkage(condensed_dist_matrix, method='ward')
     clusters = fcluster(linkage_matrix, t=k, criterion='maxclust')
     df_cen["clusters_cen"]=clusters
-
     score = silhouette_score(rows_without_nan, clusters,metric="dtw")
     print(score)
     
     if score>score_test: 
         score_test=score
         df_cen_final=df_cen
-
         unique_clusters = np.unique(clusters)
         representatives = []
             
@@ -189,9 +146,8 @@ for k in [3,5,7]:
             plt.xticks([],[])
         plt.tight_layout()
         plt.subplots_adjust(wspace=0.01)
-        plt.savefig("out/clusters_clusters.jpeg",dpi=300,bbox_inches="tight")
+        plt.savefig("out/clusters_clusters.eps",dpi=300,bbox_inches="tight")
         plt.show()
-
 
 df_final=pd.merge(final_dynamic_linear, df_cen_final[["country","clusters","clusters_cen"]],on=["clusters","country"])
 dummies = pd.get_dummies(df_final['clusters_cen'], prefix='cluster').astype(int)
@@ -206,6 +162,5 @@ final_shapes_s['fatalities_log_lag7'] = final_shapes_s.groupby('gw_codes')['fata
 final_shapes_s['fatalities_log_lag8'] = final_shapes_s.groupby('gw_codes')['fatalities_log'].shift(8)
 final_shapes_s['fatalities_log_lag9'] = final_shapes_s.groupby('gw_codes')['fatalities_log'].shift(9)
 final_shapes_s['fatalities_log_lag10'] = final_shapes_s.groupby('gw_codes')['fatalities_log'].shift(10)
-
 final_shapes_s.to_csv("data/final_shapes_s.csv")  
 

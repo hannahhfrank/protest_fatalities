@@ -1,24 +1,10 @@
 import pandas as pd
 import numpy as np
 from functions import general_model,general_dynamic_model,preprocess_min_max_group
-from sklearn.metrics import mean_squared_error
 import matplotlib.pyplot as plt
 import json
-import itertools
-from matplotlib.lines import Line2D
-from dtaidistance import dtw
-from scipy.cluster.hierarchy import linkage, fcluster,dendrogram
-import geopandas as gpd
 import matplotlib as mpl
-from mpl_toolkits.axes_grid1 import make_axes_locatable
-from matplotlib import cm 
-from sklearn.linear_model import LinearRegression,Lasso,Ridge
-import statsmodels.api as sm
-import numpy as np
-from tslearn.metrics import dtw
-import statistics
-from scipy.spatial.distance import euclidean
-from statsmodels.iolib.summary2 import summary_col
+from sklearn.linear_model import Ridge
 import os 
 os.environ['PATH'] = "/Library/TeX/texbin:" + os.environ.get('PATH', '')
 mpl.rcParams['text.usetex'] = True
@@ -28,16 +14,11 @@ mpl.rcParams['text.latex.preamble'] = r'\usepackage{lmodern}\usepackage[T1]{font
 import warnings
 warnings.simplefilter(action='ignore', category=FutureWarning)
 
-
-# Simple random forest
 random_grid = {'n_estimators': [int(x) for x in np.linspace(start = 10, stop = 2000, num = 7)],
                'max_depth': [int(x) for x in np.linspace(10, 50, num = 5)]}
 
 param_grid_lasso = {'alpha': [0.0001, 0.001, 0.01, 0.1, 0.5, 1, 2, 5, 10]}
 
-# Country definitions: http://ksgleditsch.com/statelist.html
-
-# List of microstates: 
 micro_states={"Dominica":54,
               "Grenada":55,
               "Saint Lucia":56,
@@ -63,26 +44,18 @@ micro_states={"Dominica":54,
               "Samoa":990}
 
 df=pd.read_csv("data/df.csv",index_col=0)
-
-# Exclude micro states
 df = df[~df['gw_codes'].isin(list(micro_states.values()))]
 df = df.reset_index(drop=True)
-
-# Lagged dependent variable
 preprocess_min_max_group(df,"fatalities","country")
-
 df['fatalities_norm_lag1'] = df.groupby('gw_codes')['fatalities_norm'].shift(1).fillna(0)
 df["SP.POP.TOTL_log"]=np.log(df["SP.POP.TOTL"])
 df["NY.GDP.PCAP.CD_log"]=np.log(df["NY.GDP.PCAP.CD"])
 df["fatalities_log"]=np.log(df["fatalities"]+1)
-
 df.isnull().any()
-
 
 ######################
 ### Dynamic models ###
 ######################
-
 
 countries=df.country.unique()
 final_dynamic=pd.DataFrame()
@@ -96,7 +69,6 @@ for c in countries:
     print(c)
     ts=df["n_protest_events"].loc[df["country"]==c]
     Y=df["fatalities"].loc[df["country"]==c]
-    #X_lag=df["fatalities_norm_lag1"].loc[df["country"]==c]
     X=df[["fatalities_norm_lag1",'NY.GDP.PCAP.CD_log','SP.POP.TOTL_log',"v2x_libdem","v2x_clphy","v2x_corr","v2x_rule","v2x_civlib","v2x_neopat"]].loc[df["country"]==c]
    
     # Return 0 if training data is flat
@@ -152,26 +124,26 @@ for c in countries:
     final_dynamic.to_csv("data/preds_dynamic_nonlinear2.csv")  
      
     # Linear
-    #dOLS = general_dynamic_model(ts,Y,model_pred=Ridge(max_iter=5000),opti_grid=param_grid_lasso,norm=True,metric="mse") 
-    #preds = pd.DataFrame(df["dd"].loc[df["country"]==c][-len(dOLS["actuals"]):])
-    #preds.columns = ["dd"]  
-    #preds["country"] = c
-    #preds["fatalities_revert"] = df["fatalities"].loc[df["country"]==c][-len(dOLS["actuals"]):]
-    #preds["fatalities"] = list(dOLS["actuals"])
-    #preds["preds_dols"] = list(dOLS["drf_pred"])
-    #preds["preds_dols_reverted"] = list(dOLS["drf_pred_revert"])
-    #shapes_ols.update({f"dols_{c}":[dOLS["s"],dOLS["shapes"].tolist(),dOLS["clusters"].tolist()]})
+    dOLS = general_dynamic_model(ts,Y,model_pred=Ridge(max_iter=5000),opti_grid=param_grid_lasso,norm=True,metric="mse") 
+    preds = pd.DataFrame(df["dd"].loc[df["country"]==c][-len(dOLS["actuals"]):])
+    preds.columns = ["dd"]  
+    preds["country"] = c
+    preds["fatalities_revert"] = df["fatalities"].loc[df["country"]==c][-len(dOLS["actuals"]):]
+    preds["fatalities"] = list(dOLS["actuals"])
+    preds["preds_dols"] = list(dOLS["drf_pred"])
+    preds["preds_dols_reverted"] = list(dOLS["drf_pred_revert"])
+    shapes_ols.update({f"dols_{c}":[dOLS["s"],dOLS["shapes"].tolist(),dOLS["clusters"].tolist()]})
            
     # Linear X
-    #dOLSx = general_dynamic_model(ts,Y,X=X,model_pred=Ridge(max_iter=5000),opti_grid=param_grid_lasso,norm=True,metric="mse")
-    #preds["preds_dolsx"] = list(dOLSx["drf_pred"])
-    #preds["preds_dolsx_reverted"] = list(dOLSx["drf_pred_revert"])  
-    #shapes_ols.update({f"dolsx_{c}":[dOLSx["s"],dOLSx["shapes"].tolist(),dOLSx["clusters"].tolist()]})
-    #final_dynamic_linear = pd.concat([final_dynamic_linear, preds])
-    #final_dynamic_linear.to_csv("data/preds_dynamic_linear2.csv")  
+    dOLSx = general_dynamic_model(ts,Y,X=X,model_pred=Ridge(max_iter=5000),opti_grid=param_grid_lasso,norm=True,metric="mse")
+    preds["preds_dolsx"] = list(dOLSx["drf_pred"])
+    preds["preds_dolsx_reverted"] = list(dOLSx["drf_pred_revert"])  
+    shapes_ols.update({f"dolsx_{c}":[dOLSx["s"],dOLSx["shapes"].tolist(),dOLSx["clusters"].tolist()]})
+    final_dynamic_linear = pd.concat([final_dynamic_linear, preds])
+    final_dynamic_linear.to_csv("data/preds_dynamic_linear2.csv")  
     
-with open("data/rf_shapes2.json", 'w') as json_file:
-    json.dump(shapes_rf, json_file)
+#with open("data/rf_shapes2.json", 'w') as json_file:
+#    json.dump(shapes_rf, json_file)
 
 #with open("data/ols_shapes2.json", 'w') as json_file:
 #    json.dump(shapes_ols, json_file)
@@ -196,7 +168,6 @@ for c in countries:
     print(c)
     ts=df["n_protest_events"].loc[df["country"]==c]
     Y=df["fatalities"].loc[df["country"]==c]
-   # X_lag=df["fatalities_norm_lag1"].loc[df["country"]==c]
     X=df[["fatalities_norm_lag1",'NY.GDP.PCAP.CD_log','SP.POP.TOTL_log',"v2x_libdem","v2x_clphy","v2x_corr","v2x_rule","v2x_civlib","v2x_neopat"]].loc[df["country"]==c]
 
     # Return 0 if training data is flat
@@ -267,31 +238,19 @@ for c in countries:
     final_preds_linear=final_preds_linear.reset_index(drop=True)
     final_preds_linear.to_csv("data/preds_static_linear.csv")  
             
-####################           
-### Merge cases ####
-####################   
-
+# Merge cases 
 def boot(data, num_samples=1000, statistic=np.mean):
     n = len(data)
     bootstrap_estimates = np.empty(num_samples)
-    
-    # Resample with replacement and compute the statistic for each bootstrap sample
     for i in range(num_samples):
         bootstrap_sample = np.random.choice(data, size=n, replace=True)
         bootstrap_estimates[i] = statistic(bootstrap_sample)
-    
-    # Calculate the standard deviation of the bootstrapped statistics
     standard_error = np.std(bootstrap_estimates)
     return standard_error
 
-#################
-### Nonlinear ###    
-#################
-
-# Static models
+# Nonlinear     
 final_rf_static = pd.read_csv("data/preds_static_nonlinear.csv",index_col=0)
 duplicate_rows = final_rf_static[final_rf_static.duplicated(subset=['dd', 'country'], keep=False)]
-
 for thres in [0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1]:
     df_n_country_month = {}
     countries=df.country.unique()
@@ -344,15 +303,9 @@ for thres in [0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1]:
     plt.title(f"thres {thres}")
     plt.savefig(f"out/results_main_plot_{thres}_nonlin.jpeg",dpi=300,bbox_inches="tight")
 
-
-##############
-### Linear ###    
-##############
-
-# Static models
+# Linear     
 final_rf_static = pd.read_csv("data/preds_static_linear.csv",index_col=0)
 duplicate_rows = final_rf_static[final_rf_static.duplicated(subset=['dd', 'country'], keep=False)]
-
 for thres in [0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1]:
     df_n_country_month = {}
     countries=df.country.unique()

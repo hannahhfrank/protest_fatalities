@@ -1,32 +1,20 @@
-### This file generates a csv and dictionary file containing UCDP GED data on series level ###
-
-### Load libraries -------
 import pandas as pd
 from functions import simple_imp_grouped,linear_imp_grouped
 import matplotlib.pyplot as plt
 import wbgapi as wb
-
                                 #############
                                 ### ACLED ###
                                 #############
 
-### Load ACLED data from local folder --------
-acled = pd.read_csv("/Users/hannahfrank/protest_civil_conflict/data/acled_all_events.csv",low_memory=False,index_col=[0]) 
-
-### Only include certain events -----
+acled = pd.read_csv("data/acled_all_events.csv",low_memory=False,index_col=[0]) 
 df_s = acled.loc[(acled['event_type']=="Protests")].copy(deep=True)
-
-### Add dates ----------
 df_s["dd"] = pd.to_datetime(df_s['event_date'],format='%d %B %Y')
 df_s["dd"] = df_s["dd"].dt.strftime('%Y-%m')
-
-### Aggregate to month level -------
 agg_month = pd.DataFrame(df_s.groupby(["dd","year","iso","country"]).size())
 agg_month = agg_month.reset_index()
 agg_month.rename(columns={0:"n_protest_events"},inplace=True)
 
-### Get dates and countries --------
-# Check coverage here:
+# Get dates and countries 
 # https://acleddata.com/acleddatanew/wp-content/uploads/dlm_uploads/2019/01/ACLED_Country-and-Time-Period-coverage_updatedFeb2022.pdf
 country_dates={156:[2018,2023], # China, 710
                392:[2018,2023], # Japan, 740
@@ -274,17 +262,15 @@ country_dates={156:[2018,2023], # China, 710
                }
 
 
-### Add missing observation to time series, those have zero fatalities --------
 agg_month = agg_month.sort_values(by=["country","year","dd"])
-
 base=pd.DataFrame()
 countries=list(country_dates.keys())
+
 # Loop through every country-month
 for i in range(0, len(countries)):
     date = list(pd.date_range(start=f"{country_dates[countries[i]][0]}-01",end=f"{country_dates[countries[i]][1]}-12",freq="MS"))
     date = pd.to_datetime(date, format='%Y-%m').to_period('M')
     for x in range(0, len(date)):
-            
         # Subset data to add
         s = {'dd':date[x],'iso':countries[i]}
         s = pd.DataFrame(data=s,index=[0])
@@ -293,7 +279,6 @@ for i in range(0, len(countries)):
 base = base.sort_values(by=["iso","dd"])
 base.reset_index(drop=True,inplace=True)
 base["dd"]=base["dd"].astype(str)
-
 agg_month=pd.merge(base, agg_month[["dd","iso","n_protest_events"]],on=["dd","iso"],how="left")
 agg_month=agg_month.fillna(0)
 
@@ -327,7 +312,7 @@ agg_month.loc[agg_month["iso"]==798,"region"]="Oceania"
 # Remove antacrtica
 agg_month=agg_month.loc[agg_month["country"]!="Antarctica"]
 
-### Merge countries which are not independent ###
+# Merge countries which are not independent 
 
 # "South Georgia and the South Sandwich Islands" -->  United Kingdom
 agg_month[["dd","n_protest_events"]].loc[agg_month["country"]=="South Georgia and the South Sandwich Islands"].max() # Only zeros
@@ -591,13 +576,10 @@ agg_month[["dd","n_protest_events"]].loc[agg_month["country"]=="France"]
 agg_month["n_protest_events"].loc[(agg_month["country"]=="France")& (agg_month["dd"]>="2021-01")]=agg_month["n_protest_events"].loc[(agg_month["country"]=="Wallis and Futuna")].values+agg_month["n_protest_events"].loc[(agg_month["country"]=="France")& (agg_month["dd"]>="2021-01")].values
 agg_month=agg_month.loc[agg_month["country"]!="Wallis and Futuna"]
 
-
 agg_month = agg_month.sort_values(by=["country","dd"])
 
-
-### Country codes #####
+# Country codes 
 agg_month.country.unique()
-
 agg_month["gw_codes"]=999999
 agg_month.loc[agg_month["country"]=="Afghanistan","gw_codes"]=700
 agg_month.loc[agg_month["country"]=="Albania","gw_codes"]=339
@@ -831,10 +813,7 @@ ucdp = pd.read_csv("https://ucdp.uu.se/downloads/ged/ged231-csv.zip",low_memory=
 ucdp2 = pd.read_csv("https://ucdp.uu.se/downloads/candidateged/GEDEvent_v23_01_23_12.csv",low_memory=False)
 ucdp=pd.concat([ucdp,ucdp2],axis=0,ignore_index=True)
 
-### Only use state-based violence ---------
 ucdp_s = ucdp[(ucdp["type_of_violence"]==1)].copy(deep=True)
-
-### Exclude state-based between governments ----------
 ucdp_ss = ucdp_s.loc[(ucdp_s["dyad_name"] != "Government of Afghanistan - Government of United Kingdom, Government of United States of America") &
                     (ucdp_s["dyad_name"] != "Government of Cambodia (Kampuchea) - Government of Thailand") &
                     (ucdp_s["dyad_name"] != "Government of Cameroon - Government of Nigeria") &
@@ -851,35 +830,26 @@ ucdp_ss = ucdp_s.loc[(ucdp_s["dyad_name"] != "Government of Afghanistan - Govern
                     (ucdp_s["dyad_name"] != "Government of Russia (Soviet Union) - Government of Ukraine") &                   
                     (ucdp_s["dyad_name"] != "Government of South Sudan - Government of Sudan") ].copy(deep=True)
 
-### Add dates ----
 ucdp_ss["dd_date_start"] = pd.to_datetime(ucdp_ss['date_start'],format='%Y-%m-%d %H:%M:%S.000')
 ucdp_ss["dd_date_end"] = pd.to_datetime(ucdp_ss['date_end'],format='%Y-%m-%d %H:%M:%S.000')
-
-# Only store month
 ucdp_ss["month_date_start"] = ucdp_ss["dd_date_start"].dt.strftime('%m')
 ucdp_ss["month_date_end"] = ucdp_ss["dd_date_end"].dt.strftime('%m')
 ucdp_date = ucdp_ss[["year","dd_date_start","dd_date_end","active_year","country","country_id","date_prec","best","deaths_a","deaths_b","deaths_civilians","deaths_unknown","month_date_start","month_date_end"]].copy(deep=True)
-
-# Reset index 
 ucdp_date = ucdp_date.sort_values(by=["country", "year"],ascending=True)
 ucdp_date.reset_index(drop=True, inplace=True)
 
-### Loop through data and delete observations which comprise more than one month ------
+# Loop through data and delete observations which comprise more than one month
 ucdp_final = ucdp_date.copy()
 for i in range(0,len(ucdp_date)):
     if ucdp_date["month_date_start"].loc[i]!=ucdp_date["month_date_end"].loc[i]:
         ucdp_final = ucdp_final.drop(index=i, axis=0)        
-
-### Generate year_month variable --------
 ucdp_final['dd'] = pd.to_datetime(ucdp_final['dd_date_start'],format='%Y-%m').dt.to_period('M')
 
-### Aggregate fatality variables ----------
+# Aggregate  
 fat = pd.DataFrame(ucdp_final.groupby(["dd","country_id"])['best'].sum())
 ucdp_fat = fat.reset_index()
 ucdp_fat.columns=["dd","gw_codes","fatalities"]
 ucdp_fat["dd"]=ucdp_fat["dd"].astype(str)
-
-# Merge 
 df=pd.merge(df,ucdp_fat,on=["dd","gw_codes"],how="left")
 df['fatalities'] = df['fatalities'].fillna(0)
 
@@ -887,11 +857,9 @@ df['fatalities'] = df['fatalities'].fillna(0)
                                     ### V-dem ###
                                     #############
                                     
-vdem = pd.read_csv("/Users/hannahfrank/protest_civil_conflict/data/V-Dem-CY-Full+Others-v14.csv",low_memory=False)
-        
+vdem = pd.read_csv("data/V-Dem-CY-Full+Others-v14.csv",low_memory=False)
 vdem_s=vdem[["year","country_name","v2x_polyarchy","v2x_libdem","v2x_partipdem","v2x_delibdem","v2x_egaldem","v2x_neopat","v2x_civlib","v2x_clphy","v2x_corr","v2x_rule"]]   
 vdem_s.columns=["year","country","v2x_polyarchy","v2x_libdem","v2x_partipdem","v2x_delibdem","v2x_egaldem","v2x_neopat","v2x_civlib","v2x_clphy","v2x_corr","v2x_rule"]                           
-                         
 vdem_s=vdem_s.sort_values(by=["country","year"])
 
 vdem_s["gw_codes"]=999999
@@ -1101,8 +1069,7 @@ vdem_s.loc[vdem_s["country"]=="Eswatini","gw_codes"]=572
 
 vdem_s=vdem_s.loc[vdem_s["gw_codes"]!=999999]
 
-### drop countries which are missing ###
-
+# Drop countries which are missing 
 base=df[["year","country","gw_codes"]].drop_duplicates(subset=["year","country"]).reset_index(drop=True)
 base=pd.merge(left=base,right=vdem_s[["year","gw_codes","v2x_polyarchy","v2x_libdem","v2x_partipdem","v2x_delibdem","v2x_egaldem","v2x_neopat","v2x_civlib","v2x_clphy","v2x_corr","v2x_rule"]],on=["year","gw_codes"],how="left")
 base[base['v2x_libdem'].isna()].country.unique()
@@ -1116,8 +1083,6 @@ missing=['Andorra', 'Antigua and Barbuda', 'Bahamas', 'Belize', 'Brunei',
 
 base = base[~base['country'].isin(missing)]
 df = df[~df['country'].isin(missing)]
-
-# Merge 
 df=pd.merge(df,base[["year","gw_codes","v2x_polyarchy","v2x_libdem","v2x_partipdem","v2x_delibdem","v2x_egaldem","v2x_neopat","v2x_civlib","v2x_clphy","v2x_corr","v2x_rule"]],on=["year","gw_codes"],how="left")
 
                             ##################
@@ -1324,13 +1289,11 @@ c_codes = {'Afghanistan': [700, 'AFG'],
 c_codes=pd.DataFrame.from_dict(c_codes,orient='index')
 c_codes = c_codes.reset_index()
 c_codes.columns = ['country','gw_codes','iso_alpha3']
-
 wdi = pd.DataFrame()
 feat_dev = ["NY.GDP.PCAP.CD", # GDP per capita (current US$)
             "SP.POP.TOTL", # Population size
             ]
 
-# loop through each year and get data
 for i in list(range(1989, 2024, 1)):
     print(i)
     wdi_s = wb.data.DataFrame(feat_dev, list(c_codes.iso_alpha3), [i])
@@ -1341,375 +1304,33 @@ for i in list(range(1989, 2024, 1)):
 wdi = pd.merge(wdi,c_codes[['gw_codes','iso_alpha3']],how='left',left_on=['economy'],right_on=['iso_alpha3'])
 
 # A. GDP per capita (current US$)
-
 base=df[["year","country","gw_codes"]].drop_duplicates(subset=["year","country"]).reset_index(drop=True)
 base=pd.merge(left=base,right=wdi[["year","gw_codes","NY.GDP.PCAP.CD","SP.POP.TOTL"]],on=["year","gw_codes"],how="left")
-#base = base[~base['country'].isin(["North Korea","Taiwan","Venezuela"])] 
-
-### Simple ###
 base_imp_final=linear_imp_grouped(base,"country",["NY.GDP.PCAP.CD"])
 base_imp_final=simple_imp_grouped(base_imp_final,"country",["NY.GDP.PCAP.CD"])
 
-# Validate
 for c in base.country.unique():
     fig, axs = plt.subplots(1, 2, figsize=(10, 5))
     axs[0].plot(base["year"].loc[base["country"]==c], base["NY.GDP.PCAP.CD"].loc[base["country"]==c])
     axs[1].plot(base_imp_final["year"].loc[base_imp_final["country"]==c], base_imp_final["NY.GDP.PCAP.CD"].loc[base_imp_final["country"]==c])
     axs[0].set_title(c)
     plt.show()
-
 df=pd.merge(df,base_imp_final[["year","gw_codes","NY.GDP.PCAP.CD"]],on=["year","gw_codes"],how="left")
 
 # B. Population size
-
 base=df[["year","country","gw_codes"]].drop_duplicates(subset=["year","country"]).reset_index(drop=True)
 base=pd.merge(left=base,right=wdi[["year","gw_codes","NY.GDP.PCAP.CD","SP.POP.TOTL"]],on=["year","gw_codes"],how="left")
-
-### Simple ###
 base_imp_final=linear_imp_grouped(base,"country",["SP.POP.TOTL"])
 base_imp_final=simple_imp_grouped(base_imp_final,"country",["SP.POP.TOTL"])
 
-# Validate
 for c in base.country.unique():
     fig, axs = plt.subplots(1, 2, figsize=(10, 5))
     axs[0].plot(base["year"].loc[base["country"]==c], base["SP.POP.TOTL"].loc[base["country"]==c])
     axs[1].plot(base_imp_final["year"].loc[base_imp_final["country"]==c], base_imp_final["SP.POP.TOTL"].loc[base_imp_final["country"]==c])
     axs[0].set_title(c)
     plt.show()
-
-# Merge
 df=pd.merge(df,base_imp_final[["year","gw_codes","SP.POP.TOTL"]],on=["year","gw_codes"],how="left")
 df = df[~df['country'].isin(["North Korea","Taiwan","Venezuela"])]
-
-                                #############
-                                ### REIGN ###
-                                #############
-
-# Load data
-#reign = pd.read_csv("data/reign_8_21.csv", encoding='latin1') 
-
-# Add dates 
-#reign['dd'] = pd.to_datetime(reign['month'].astype(str)+reign['year'].astype(str),format='%m%Y').dt.to_period('M')
-#reign["dd"]=reign["dd"].astype(str)
-
-# Subset
-#reign = reign[["country",
-#               "dd",
-#               "year",
-#               "tenure_months", # months that a leader has been in power
-#               "anticipation", # there is an election for the de facto leadership position coming within the next six-months.
-#               "lastelection", # time since the last election
-#                  ]]
-
-#reign["gw_codes"]=999999
-#reign.loc[reign["country"]=="Afghanistan","gw_codes"]=700
-#reign.loc[reign["country"]=="Albania","gw_codes"]=339
-#reign.loc[reign["country"]=="Algeria","gw_codes"]=615
-#reign.loc[reign["country"]=="Andorra","gw_codes"]=232
-#reign.loc[reign["country"]=="Angola","gw_codes"]=540
-#reign.loc[reign["country"]=="Antigua and Barbuda","gw_codes"]=58
-#reign.loc[reign["country"]=="Argentina","gw_codes"]=160
-#reign.loc[reign["country"]=="Armenia","gw_codes"]=371
-#reign.loc[reign["country"]=="Australia","gw_codes"]=900
-#reign.loc[reign["country"]=="Austria","gw_codes"]=305
-#reign.loc[reign["country"]=="Azerbaijan","gw_codes"]=373
-
-#reign.loc[reign["country"]=="Bahamas","gw_codes"]=31
-#reign.loc[reign["country"]=="Bahrain","gw_codes"]=692
-#reign.loc[reign["country"]=="Bangladesh","gw_codes"]=771
-#reign.loc[reign["country"]=="Barbados","gw_codes"]=53
-#reign.loc[reign["country"]=="Belarus","gw_codes"]=370
-#reign.loc[reign["country"]=="Belgium","gw_codes"]=211
-#reign.loc[reign["country"]=="Belize","gw_codes"]=80
-#reign.loc[reign["country"]=="Benin","gw_codes"]=434
-#reign.loc[reign["country"]=="Bhutan","gw_codes"]=760
-#reign.loc[reign["country"]=="Bolivia","gw_codes"]=145
-#reign.loc[reign["country"]=="Bosnia","gw_codes"]=346
-#reign.loc[reign["country"]=="Botswana","gw_codes"]=571
-#reign.loc[reign["country"]=="Brazil","gw_codes"]=140
-#reign.loc[reign["country"]=="Brunei","gw_codes"]=835
-#reign.loc[reign["country"]=="Bulgaria","gw_codes"]=355
-#reign.loc[reign["country"]=="Burkina Faso","gw_codes"]=439
-#reign.loc[reign["country"]=="Burundi","gw_codes"]=516
-
-#reign.loc[reign["country"]=="Cape Verde","gw_codes"]=402
-#reign.loc[reign["country"]=="Cambodia","gw_codes"]=811
-#reign.loc[reign["country"]=="Cameroon","gw_codes"]=471
-#reign.loc[reign["country"]=="Canada","gw_codes"]=20
-#reign.loc[reign["country"]=="Cen African Rep","gw_codes"]=482
-#reign.loc[reign["country"]=="Chad","gw_codes"]=483
-#reign.loc[reign["country"]=="Chile","gw_codes"]=155
-#reign.loc[reign["country"]=="China","gw_codes"]=710
-#reign.loc[reign["country"]=="Colombia","gw_codes"]=100
-#reign.loc[reign["country"]=="Comoros","gw_codes"]=581
-#reign.loc[reign["country"]=="Costa Rica","gw_codes"]=94
-#reign.loc[reign["country"]=="Croatia","gw_codes"]=344
-#reign.loc[reign["country"]=="Cuba","gw_codes"]=40
-#reign.loc[reign["country"]=="Cyprus","gw_codes"]=352
-#reign.loc[reign["country"]=="Czech Rep","gw_codes"]=316
-#reign.loc[reign["country"]=="Congo-Brz","gw_codes"]=484
-#reign.loc[reign["country"]=="Congo/Zaire","gw_codes"]=490
-#reign.loc[reign["country"]=="Czechoslovakia","gw_codes"]=315
-
-#reign.loc[reign["country"]=="Denmark","gw_codes"]=390
-#reign.loc[reign["country"]=="Djibouti","gw_codes"]=522
-#reign.loc[reign["country"]=="Dominica","gw_codes"]=54
-#reign.loc[reign["country"]=="Dominican Rep","gw_codes"]=42
-
-#reign.loc[reign["country"]=="East Timor","gw_codes"]=860
-#reign.loc[reign["country"]=="Ecuador","gw_codes"]=130
-#reign.loc[reign["country"]=="Egypt","gw_codes"]=651
-#reign.loc[reign["country"]=="El Salvador","gw_codes"]=92
-#reign.loc[reign["country"]=="Equatorial Guinea","gw_codes"]=411
-#reign.loc[reign["country"]=="Eritrea","gw_codes"]=531
-#reign.loc[reign["country"]=="Estonia","gw_codes"]=366
-#reign.loc[reign["country"]=="Ethiopia","gw_codes"]=530
-
-#reign.loc[reign["country"]=="Fiji","gw_codes"]=950
-#reign.loc[reign["country"]=="Finland","gw_codes"]=375
-#reign.loc[reign["country"]=="France","gw_codes"]=220
-
-#reign.loc[reign["country"]=="Gabon","gw_codes"]=481
-#reign.loc[reign["country"]=="Gambia","gw_codes"]=420
-#reign.loc[reign["country"]=="Georgia","gw_codes"]=372
-#reign.loc[reign["country"]=="Germany","gw_codes"]=260
-#reign.loc[reign["country"]=="Germany East","gw_codes"]=265
-#reign.loc[reign["country"]=="Ghana","gw_codes"]=452
-#reign.loc[reign["country"]=="Greece","gw_codes"]=350
-#reign.loc[reign["country"]=="Grenada","gw_codes"]=55
-#reign.loc[reign["country"]=="Guatemala","gw_codes"]=90
-#reign.loc[reign["country"]=="Guinea","gw_codes"]=438
-#reign.loc[reign["country"]=="Guinea Bissau","gw_codes"]=404
-#reign.loc[reign["country"]=="Guyana","gw_codes"]=110
-
-#reign.loc[reign["country"]=="Haiti","gw_codes"]=41
-#reign.loc[reign["country"]=="Honduras","gw_codes"]=91
-#reign.loc[reign["country"]=="Hungary","gw_codes"]=310
-
-#reign.loc[reign["country"]=="Iceland","gw_codes"]=395
-#reign.loc[reign["country"]=="India","gw_codes"]=750
-#reign.loc[reign["country"]=="Indonesia","gw_codes"]=850
-#reign.loc[reign["country"]=="Iran","gw_codes"]=630
-#reign.loc[reign["country"]=="Iraq","gw_codes"]=645
-#reign.loc[reign["country"]=="Ireland","gw_codes"]=205
-#reign.loc[reign["country"]=="Israel","gw_codes"]=666
-#reign.loc[reign["country"]=="Italy","gw_codes"]=325
-#reign.loc[reign["country"]=="Ivory Coast","gw_codes"]=437
-
-#reign.loc[reign["country"]=="Jamaica","gw_codes"]=51
-#reign.loc[reign["country"]=="Japan","gw_codes"]=740
-#reign.loc[reign["country"]=="Jordan","gw_codes"]=663
-
-#reign.loc[reign["country"]=="Kazakhstan","gw_codes"]=705
-#reign.loc[reign["country"]=="Kenya","gw_codes"]=501
-#reign.loc[reign["country"]=="Korea North","gw_codes"]=731
-#reign.loc[reign["country"]=="Korea South","gw_codes"]=732
-#reign.loc[reign["country"]=="Kosovo","gw_codes"]=347
-#reign.loc[reign["country"]=="Kuwait","gw_codes"]=690
-#reign.loc[reign["country"]=="Kyrgyzstan","gw_codes"]=703
-
-#reign.loc[reign["country"]=="Laos","gw_codes"]=812
-#reign.loc[reign["country"]=="Latvia","gw_codes"]=367
-#reign.loc[reign["country"]=="Lebanon","gw_codes"]=660
-#reign.loc[reign["country"]=="Lesotho","gw_codes"]=570
-#reign.loc[reign["country"]=="Liberia","gw_codes"]=450
-#reign.loc[reign["country"]=="Libya","gw_codes"]=620
-#reign.loc[reign["country"]=="Lithuania","gw_codes"]=368
-#reign.loc[reign["country"]=="Luxembourg","gw_codes"]=212
-
-#reign.loc[reign["country"]=="Macedonia","gw_codes"]=343
-#reign.loc[reign["country"]=="Madagascar","gw_codes"]=580
-#reign.loc[reign["country"]=="Malawi","gw_codes"]=553
-#reign.loc[reign["country"]=="Malaysia","gw_codes"]=820
-#reign.loc[reign["country"]=="Maldives","gw_codes"]=781
-#reign.loc[reign["country"]=="Mali","gw_codes"]=432
-#reign.loc[reign["country"]=="Malta","gw_codes"]=338
-
-#reign.loc[reign["country"]=="Mauritius","gw_codes"]=590
-#reign.loc[reign["country"]=="Mauritania","gw_codes"]=435
-#reign.loc[reign["country"]=="Mexico","gw_codes"]=70
-#reign.loc[reign["country"]=="Moldova","gw_codes"]=359
-#reign.loc[reign["country"]=="Mongolia","gw_codes"]=712
-#reign.loc[reign["country"]=="Montenegro","gw_codes"]=341
-#reign.loc[reign["country"]=="Morocco","gw_codes"]=600
-#reign.loc[reign["country"]=="Mozambique","gw_codes"]=541
-#reign.loc[reign["country"]=="Myanmar","gw_codes"]=775
-
-#reign.loc[reign["country"]=="Namibia","gw_codes"]=565
-#reign.loc[reign["country"]=="Nepal","gw_codes"]=790
-#reign.loc[reign["country"]=="Netherlands","gw_codes"]=210
-#reign.loc[reign["country"]=="New Zealand","gw_codes"]=920
-#reign.loc[reign["country"]=="Nicaragua","gw_codes"]=93
-#reign.loc[reign["country"]=="Niger","gw_codes"]=436
-#reign.loc[reign["country"]=="Nigeria","gw_codes"]=475
-#reign.loc[reign["country"]=="Norway","gw_codes"]=385
-
-#reign.loc[reign["country"]=="Oman","gw_codes"]=698
-
-#reign.loc[reign["country"]=="Pakistan","gw_codes"]=770
-#reign.loc[reign["country"]=="Panama","gw_codes"]=95
-#reign.loc[reign["country"]=="Papua New Guinea","gw_codes"]=910
-#reign.loc[reign["country"]=="Paraguay","gw_codes"]=150
-#reign.loc[reign["country"]=="Peru","gw_codes"]=135
-#reign.loc[reign["country"]=="Philippines","gw_codes"]=840
-#reign.loc[reign["country"]=="Poland","gw_codes"]=290
-#reign.loc[reign["country"]=="Portugal","gw_codes"]=235
-
-#reign.loc[reign["country"]=="Qatar","gw_codes"]=694#
-
-#reign.loc[reign["country"]=="Romania","gw_codes"]=360
-#reign.loc[reign["country"]=="Russia","gw_codes"]=365
-#reign.loc[reign["country"]=="Rwanda","gw_codes"]=517
-
-#reign.loc[reign["country"]=="Sao Tome and Principe","gw_codes"]=403
-#reign.loc[reign["country"]=="Saudi Arabia","gw_codes"]=670
-#reign.loc[reign["country"]=="Senegal","gw_codes"]=433
-#reign.loc[reign["country"]=="Serbia","gw_codes"]=340
-#reign.loc[reign["country"]=="Seychelles","gw_codes"]=591
-#reign.loc[reign["country"]=="Sierra Leone","gw_codes"]=451
-#reign.loc[reign["country"]=="Singapore","gw_codes"]=830
-#reign.loc[reign["country"]=="Slovakia","gw_codes"]=317
-#reign.loc[reign["country"]=="Slovenia","gw_codes"]=349
-#reign.loc[reign["country"]=="Solomon Islands","gw_codes"]=940
-#reign.loc[reign["country"]=="Somalia","gw_codes"]=520
-#reign.loc[reign["country"]=="South Africa","gw_codes"]=560
-#reign.loc[reign["country"]=="South Sudan","gw_codes"]=626
-#reign.loc[reign["country"]=="Spain","gw_codes"]=230
-#reign.loc[reign["country"]=="Sri Lanka","gw_codes"]=780
-#reign.loc[reign["country"]=="Sudan","gw_codes"]=625
-#reign.loc[reign["country"]=="Suriname","gw_codes"]=115
-#reign.loc[reign["country"]=="Sweden","gw_codes"]=380
-#reign.loc[reign["country"]=="Switzerland","gw_codes"]=225
-#reign.loc[reign["country"]=="Syria","gw_codes"]=652
-
-#reign.loc[reign["country"]=="Tajikistan","gw_codes"]=702
-#reign.loc[reign["country"]=="Tanzania","gw_codes"]=510
-#reign.loc[reign["country"]=="Thailand","gw_codes"]=800
-#reign.loc[reign["country"]=="Togo","gw_codes"]=461
-#reign.loc[reign["country"]=="Trinidad and Tobago","gw_codes"]=52
-#reign.loc[reign["country"]=="Tunisia","gw_codes"]=616
-#reign.loc[reign["country"]=="Turkey","gw_codes"]=640
-#reign.loc[reign["country"]=="Turkmenistan","gw_codes"]=701
-
-#reign.loc[reign["country"]=="Uganda","gw_codes"]=500
-#reign.loc[reign["country"]=="Ukraine","gw_codes"]=369
-#reign.loc[reign["country"]=="United Arab Emirates","gw_codes"]=696
-#reign.loc[reign["country"]=="UKG","gw_codes"]=200
-#reign.loc[reign["country"]=="USA","gw_codes"]=2
-#reign.loc[reign["country"]=="Uruguay","gw_codes"]=165
-#reign.loc[reign["country"]=="Uzbekistan","gw_codes"]=704
-
-#reign.loc[reign["country"]=="Vanuatu","gw_codes"]=935
-#reign.loc[reign["country"]=="Venezuela","gw_codes"]=101
-#reign.loc[reign["country"]=="Vietnam","gw_codes"]=816
-
-#reign.loc[reign["country"]=="Yemen","gw_codes"]=678
-#reign.loc[reign["country"]=="Zambia","gw_codes"]=551
-#reign.loc[reign["country"]=="Zimbabwe","gw_codes"]=552
-
-#reign.loc[reign["country"]=="Swaziland","gw_codes"]=572
-
-#reign.loc[reign["country"]=="St Lucia","gw_codes"]=56
-#reign.loc[reign["country"]=="St Vincent","gw_codes"]=57
-#reign.loc[reign["country"]=="St Kitts and Nevis","gw_codes"]=60
-#reign.loc[reign["country"]=="Monaco","gw_codes"]=221
-#reign.loc[reign["country"]=="Liechtenstein","gw_codes"]=223
-#reign.loc[reign["country"]=="San Marino","gw_codes"]=331
-#reign.loc[reign["country"]=="Yugoslavia","gw_codes"]=345
-#reign.loc[reign["country"]=="Yemen South","gw_codes"]=680
-#reign.loc[reign["country"]=="Vietnam South","gw_codes"]=817
-#reign.loc[reign["country"]=="Kiribati","gw_codes"]=970
-#reign.loc[reign["country"]=="Tuvalu","gw_codes"]=973
-#reign.loc[reign["country"]=="Tonga","gw_codes"]=972
-#reign.loc[reign["country"]=="Nauru","gw_codes"]=971
-#reign.loc[reign["country"]=="Marshall Islands","gw_codes"]=983
-#reign.loc[reign["country"]=="Palau","gw_codes"]=986
-#reign.loc[reign["country"]=="Micronesia","gw_codes"]=987
-#reign.loc[reign["country"]=="Samoa","gw_codes"]=990
-
-#reign=reign.loc[reign["gw_codes"]!=999999]
-
-# Remove duplicates in REIGN 
-#reign.drop_duplicates(keep='first', inplace=True,subset=['gw_codes',"dd"])
-    
-# A. Months in power
-
-#base=df[["dd","country","gw_codes"]]
-#base=pd.merge(left=base,right=reign[["dd","gw_codes","tenure_months","anticipation","lastelection"]],on=["dd","gw_codes"],how="left")
-
-### Simple ###
-#base_imp_final=linear_imp_grouped(base,"country",["tenure_months"])
-
-# Validate
-#for c in base.country.unique():
-#    fig, axs = plt.subplots(1, 2, figsize=(10, 5))
-#    axs[0].plot(base["dd"].loc[base["country"]==c], base["tenure_months"].loc[base["country"]==c])
-#    axs[1].plot(base_imp_final["dd"].loc[base_imp_final["country"]==c], base_imp_final["tenure_months"].loc[base_imp_final["country"]==c])
-#    axs[0].set_title(c)
-#    plt.show()
-
-# Merge 
-#df=pd.merge(df,base_imp_final[["dd","gw_codes","tenure_months"]],on=["dd","gw_codes"],how="left")
-
-# B. Elections anticipated
-
-#base=df[["dd","country","gw_codes"]]
-#base=pd.merge(left=base,right=reign[["dd","gw_codes","tenure_months","anticipation","lastelection"]],on=["dd","gw_codes"],how="left")
-
-### Multiple ###
-
-#base_imp=imp_opti(base,"country",["anticipation"],vars_add=["tenure_months","lastelection"],max_iter=10)
-
-# Calibrate 
-#base_imp_calib=calibrate_imp(base_imp, "country", "anticipation")
-
-### Simple ###
-#base_imp_final=linear_imp_grouped(base,"country",["anticipation"])
-
-# Merge
-#base_imp_final['anticipation'] = base_imp_final['anticipation'].fillna(base_imp_calib['anticipation'])
-#base_imp_final=base_imp_final.sort_values(by=["country","dd"])
-
-# Validate
-#for c in base.country.unique():
-#    fig, axs = plt.subplots(1, 2, figsize=(10, 5))
-#    axs[0].plot(base["dd"].loc[base["country"]==c], base["anticipation"].loc[base["country"]==c])
-#    axs[1].plot(base_imp_final["dd"].loc[base_imp_final["country"]==c], base_imp_final["anticipation"].loc[base_imp_final["country"]==c])
-#    axs[0].set_title(c)
-#    plt.show()
-
-# Merge 
-#df=pd.merge(df,base_imp_final[["dd","gw_codes","anticipation"]],on=["dd","gw_codes"],how="left")
-
-# C. Months since elections
-
-#base=df[["dd","country","gw_codes"]]
-#base=pd.merge(left=base,right=reign[["dd","gw_codes","tenure_months","anticipation","lastelection"]],on=["dd","gw_codes"],how="left")
-
-### Multiple ###
-
-#base_imp=imp_opti(base,"country",["lastelection"],vars_add=["tenure_months","anticipation"],max_iter=10)
-
-# Calibrate 
-#base_imp_calib=calibrate_imp(base_imp, "country", "lastelection")
-
-### Simple ###
-#base_imp_final=linear_imp_grouped(base,"country",["lastelection"])
-
-# Merge
-#base_imp_final['lastelection'] = base_imp_final['lastelection'].fillna(base_imp_calib['lastelection'])
-#base_imp_final=base_imp_final.sort_values(by=["country","dd"])
-
-# Validate
-#for c in base.country.unique():
-#    fig, axs = plt.subplots(1, 2, figsize=(10, 5))
-#    axs[0].plot(base["dd"].loc[base["country"]==c], base["lastelection"].loc[base["country"]==c])
-#    axs[1].plot(base_imp_final["dd"].loc[base_imp_final["country"]==c], base_imp_final["lastelection"].loc[base_imp_final["country"]==c])
-#    axs[0].set_title(c)
-#    plt.show()
-
-# Merge 
-#df=pd.merge(df,base_imp_final[["dd","gw_codes","lastelection"]],on=["dd","gw_codes"],how="left")
 
 # Save
 df.isnull().any()
