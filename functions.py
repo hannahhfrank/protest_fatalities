@@ -156,11 +156,11 @@ def general_model(ts,
             x_test = in_put[-(len(ts)-int(train_test_split*len(ts))):]     
             
             if opti_grid is not None:
-                val_train_index = list(y_train[:int(0.5*len(y_train))].index)
-                val_test_index = list(y_train[int(0.5*len(y_train)):].index)
-                splits = np.array([-1] * len(val_train_index) + [0] * len(val_test_index))
-                ps = PredefinedSplit(test_fold=splits)
-                grid_search = GridSearchCV(estimator=model_pred, param_grid=opti_grid, cv=ps, verbose=0, n_jobs=-1)
+                val_train_ids = list(y_train[:int(0.5*len(y_train))].index)
+                val_test_ids = list(y_train[int(0.5*len(y_train)):].index)
+                splits = np.array([-1] * len(val_train_ids) + [0] * len(val_test_ids))
+                splits = PredefinedSplit(test_fold=splits)
+                grid_search = GridSearchCV(estimator=model_pred, param_grid=opti_grid, cv=splits, verbose=0, n_jobs=-1)
                 grid_search.fit(x_train, y_train)
                 pred = grid_search.predict(x_test)
                 
@@ -318,11 +318,11 @@ def general_dynamic_model(y,
                         x_test = in_put[-(len(y)-int(train_test_split*len(y))):] 
                                 
                         if opti_grid is not None: 
-                            val_train_index = list(y_train[:int(0.5*len(y_train))].index)
-                            val_test_index = list(y_train[int(0.5*len(y_train)):].index)
-                            splits = np.array([-1] * len(val_train_index) + [0] * len(val_test_index))
-                            ps = PredefinedSplit(test_fold=splits)
-                            grid_search = GridSearchCV(estimator=model_pred, param_grid=opti_grid, cv=ps, verbose=0, n_jobs=-1)
+                            val_train_ids = list(y_train[:int(0.5*len(y_train))].index)
+                            val_test_ids = list(y_train[int(0.5*len(y_train)):].index)
+                            splits = np.array([-1] * len(val_train_ids) + [0] * len(val_test_ids))
+                            splits = PredefinedSplit(test_fold=splits)
+                            grid_search = GridSearchCV(estimator=model_pred, param_grid=opti_grid, cv=splits, verbose=0, n_jobs=-1)
                             grid_search.fit(x_train, y_train.values.ravel())
                             pred = grid_search.predict(x_test)
                             
