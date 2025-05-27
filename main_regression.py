@@ -109,36 +109,36 @@ for k in [3,5,7]:
             df_cen=pd.concat([df_cen,lst])
     
     arr=df_cen[[0,1,2,3,4,5,6,7,8,9,10,11]].values
-    rows_without_nan = []
+    matrix_in = []
     for row in arr:
         row=row.astype(float)
-        rows_without_nan.append(row[~np.isnan(row)])
-    distance_matrix = dtw.distance_matrix_fast(rows_without_nan)    
-    condensed_dist_matrix = squareform(distance_matrix)
-    linkage_matrix = linkage(condensed_dist_matrix, method='ward')
-    clusters = fcluster(linkage_matrix, t=k, criterion='maxclust')
+        matrix_in.append(row[~np.isnan(row)])
+    matrix_d = dtw.distance_matrix_fast(matrix_in)    
+    dist_matrix = squareform(matrix_d)
+    link_matrix = linkage(dist_matrix, method='ward')
+    clusters = fcluster(link_matrix, t=k, criterion='maxclust')
     df_cen["clusters_cen"]=clusters
-    score = silhouette_score(rows_without_nan, clusters,metric="dtw")
+    score = silhouette_score(matrix_in, clusters,metric="dtw")
     print(score)
     
     if score>score_test: 
         score_test=score
         df_cen_final=df_cen
-        unique_clusters = np.unique(clusters)
-        representatives = []
+        clusters_s = np.unique(clusters)
+        centroids = []
             
-        for cluster_id in unique_clusters:
-            cluster_sequences = [rows_without_nan[i] for i, cluster in enumerate(clusters) if cluster == cluster_id]
-            distance_matrix = dtw.distance_matrix_fast(cluster_sequences)
-            representative_idx = np.argmin(distance_matrix.sum(axis=0))
-            representatives.append(cluster_sequences[representative_idx])
+        for cluster_id in clusters_s:
+            cluster_seq = [matrix_in[i] for i, cluster in enumerate(clusters) if cluster == cluster_id]
+            matrix_d = dtw.distance_matrix_fast(cluster_seq)
+            representative_idx = np.argmin(matrix_d.sum(axis=0))
+            centroids.append(cluster_seq[representative_idx])
                 
-        n_clusters = len(representatives)
+        n_clusters = len(centroids)
         cols = 3
         rows = n_clusters // cols + (n_clusters % cols > 0)
             
         plt.figure(figsize=(10, 3 * rows))
-        for i, seq in enumerate(representatives):
+        for i, seq in enumerate(centroids):
             plt.subplot(rows, cols, i+1)
             plt.plot(seq,linewidth=2,c="black")
             plt.title(f'Cluster {i+1}',size=25)
