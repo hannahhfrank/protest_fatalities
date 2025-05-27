@@ -147,7 +147,7 @@ ax2.plot([3,3],[0.012,0.0119],linewidth=0.5,color="black")
 ax2.text(1.92,0.01199, "***", fontsize=12)
 
 plt.savefig("out/results_main_plot.eps",dpi=300,bbox_inches="tight")
-plt.savefig(f"/Users/hannahfrank/Dropbox/Apps/Overleaf/PhD_dissertation/out/results_main_plot.eps",dpi=300,bbox_inches='tight')
+plt.savefig("/Users/hannahfrank/Dropbox/Apps/Overleaf/PhD_dissertation/out/results_main_plot.eps",dpi=300,bbox_inches='tight')
 
 # All shapes 
 df_linear = pd.read_csv("data/df_linear.csv",index_col=0)
@@ -171,17 +171,17 @@ for c,i,j in zip(countries,[0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,2,2,2,2,2,2,
         axs[i, j].set_xticks([],[])
         axs[i, j].set_axis_off()
         if c =='Democratic Republic of Congo':
-            axs[i, j].set_title(f'DRC',size=25)
+            axs[i, j].set_title('DRC',size=25)
         elif c =='Central African Republic':
-            axs[i, j].set_title(f'CAR',size=25)
+            axs[i, j].set_title('CAR',size=25)
         elif c =='Bosnia and Herzegovina':
-            axs[i, j].set_title(f'BIH',size=25)      
+            axs[i, j].set_title('BIH',size=25)      
         elif c =='Domican Republic':
-            axs[i, j].set_title(f'Domican Rep.',size=25)  
+            axs[i, j].set_title('Domican Rep.',size=25)  
         elif c =='Equatorial Guinea':
-            axs[i, j].set_title(f'Eq. Guinea',size=25)     
+            axs[i, j].set_title('Eq. Guinea',size=25)     
         elif c =='United Arab Emirates':
-            axs[i, j].set_title(f'UAE',size=25)                
+            axs[i, j].set_title('UAE',size=25)                
         else: 
             axs[i, j].set_title(f'{c}',size=25)
          
@@ -190,7 +190,7 @@ for ax in axs[16, 8:]:
     ax.remove()            
             
 plt.savefig("out/results_cluster_grid_drfx.eps",dpi=300,bbox_inches="tight")
-plt.savefig(f"/Users/hannahfrank/Dropbox/Apps/Overleaf/PhD_dissertation/out/results_cluster_grid_drfx.eps",dpi=300,bbox_inches='tight')
+plt.savefig("/Users/hannahfrank/Dropbox/Apps/Overleaf/PhD_dissertation/out/results_cluster_grid_drfx.eps",dpi=300,bbox_inches='tight')
  
 fig, axs = plt.subplots(17, 10, figsize=(26, 37))
 for c,i,j in zip(countries,[0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,2,2,2,2,2,2,2,2,2,2,3,3,3,3,3,3,3,3,3,3,4,4,4,4,4,4,4,4,4,4,5,5,5,5,5,5,5,5,5,5,6,6,6,6,6,6,6,6,6,6,7,7,7,7,7,7,7,7,7,7,8,8,8,8,8,8,8,8,8,8,9,9,9,9,9,9,9,9,9,9,10,10,10,10,10,10,10,10,10,10,11,11,11,11,11,11,11,11,11,11,12,12,12,12,12,12,12,12,12,12,13,13,13,13,13,13,13,13,13,13,14,14,14,14,14,14,14,14,14,14,15,15,15,15,15,15,15,15,15,15,16,16,16,16,16,16,16,16,16,16],[0,1,2,3,4,5,6,7,8,9,0,1,2,3,4,5,6,7,8,9,0,1,2,3,4,5,6,7,8,9,0,1,2,3,4,5,6,7,8,9,0,1,2,3,4,5,6,7,8,9,0,1,2,3,4,5,6,7,8,9,0,1,2,3,4,5,6,7,8,9,0,1,2,3,4,5,6,7,8,9,0,1,2,3,4,5,6,7,8,9,0,1,2,3,4,5,6,7,8,9,0,1,2,3,4,5,6,7,8,9,0,1,2,3,4,5,6,7,8,9,0,1,2,3,4,5,6,7,8,9,0,1,2,3,4,5,6,7,8,9,0,1,2,3,4,5,6,7,8,9,0,1,2,3,4,5,6,7,8,9,0,1,2,3,4,5,6,7,8,9]):
@@ -203,17 +203,17 @@ for c,i,j in zip(countries,[0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,2,2,2,2,2,2,
         axs[i, j].set_xticks([],[])
         axs[i, j].set_axis_off()
         if c =='Democratic Republic of Congo':
-            axs[i, j].set_title(f'DRC',size=25)
+            axs[i, j].set_title('DRC',size=25)
         elif c =='Central African Republic':
-            axs[i, j].set_title(f'CAR',size=25)
+            axs[i, j].set_title('CAR',size=25)
         elif c =='Bosnia and Herzegovina':
-            axs[i, j].set_title(f'BIH',size=25)      
+            axs[i, j].set_title('BIH',size=25)      
         elif c =='Domican Republic':
-            axs[i, j].set_title(f'Domican Rep.',size=25)  
+            axs[i, j].set_title('Domican Rep.',size=25)  
         elif c =='Equatorial Guinea':
-            axs[i, j].set_title(f'Eq. Guinea',size=25)     
+            axs[i, j].set_title('Eq. Guinea',size=25)     
         elif c =='United Arab Emirates':
-            axs[i, j].set_title(f'UAE',size=25)                
+            axs[i, j].set_title('UAE',size=25)                
         else: 
             axs[i, j].set_title(f'{c}',size=25)
          
@@ -222,7 +222,7 @@ for ax in axs[16, 8:]:
     ax.remove()           
             
 plt.savefig("out/results_cluster_grid_dolsx.eps",dpi=300,bbox_inches="tight") 
-plt.savefig(f"/Users/hannahfrank/Dropbox/Apps/Overleaf/PhD_dissertation/out/results_cluster_grid_dolsx.eps",dpi=300,bbox_inches='tight')
+plt.savefig("/Users/hannahfrank/Dropbox/Apps/Overleaf/PhD_dissertation/out/results_cluster_grid_dolsx.eps",dpi=300,bbox_inches='tight')
 
 # Prediction plots 
 df_linear = pd.read_csv("data/df_linear.csv",index_col=0)
@@ -276,12 +276,12 @@ for n,y,i,j in zip(["India","India", "Philippines","Philippines", "Somalia","Som
             plt.text(-2.9, 0.7, n, fontsize=20)
 
 plt.savefig("out/preds_best_select_ols.eps",dpi=300,bbox_inches="tight")
-plt.savefig(f"/Users/hannahfrank/Dropbox/Apps/Overleaf/PhD_dissertation/out/preds_best_select_ols.eps",dpi=300,bbox_inches='tight')
+plt.savefig("/Users/hannahfrank/Dropbox/Apps/Overleaf/PhD_dissertation/out/preds_best_select_ols.eps",dpi=300,bbox_inches='tight')
 
 fig = plt.figure(figsize=(10, 13))
 grid = GridSpec(4, 2, figure=fig, wspace=0.05, hspace=0.4)
 for n,y,i,j in zip(["Thailand","Thailand", "Niger","Niger", "Nigeria","Nigeria","Nigeria","Nigeria"],[2022,2023,2017,2018,2016,2017,2018,2019],[0,0,1,1,2,2,3,3],[0,1,0,1,0,1,0,1]):
-    print(n,y,i,j )
+    print(n,y,i,j)
     ax = fig.add_subplot(grid[i, j])
     plt.plot(df_linear["dd"].loc[(df_linear["country"]==n)&(df_linear["dd"]>=f"{y}-01")&(df_linear["dd"]<=f"{y}-12")],df_linear["fatalities"].loc[(df_linear["country"]==n)&(df_linear["dd"]>=f"{y}-01")&(df_linear["dd"]<=f"{y}-12")],linestyle="solid",color="black",linewidth=1)
     plt.plot(df_linear["dd"].loc[(df_linear["country"]==n)&(df_linear["dd"]>=f"{y}-01")&(df_linear["dd"]<=f"{y}-12")],df_linear["preds_ols"].loc[(df_linear["country"]==n)&(df_linear["dd"]>=f"{y}-01")&(df_linear["dd"]<=f"{y}-12")],linestyle="dotted",color="black",linewidth=1)
@@ -328,12 +328,12 @@ for n,y,i,j in zip(["Thailand","Thailand", "Niger","Niger", "Nigeria","Nigeria",
             plt.text(-2.7, 0.4, n, fontsize=20)
 
 plt.savefig("out/preds_worst_select_ols.eps",dpi=300,bbox_inches="tight")
-plt.savefig(f"/Users/hannahfrank/Dropbox/Apps/Overleaf/PhD_dissertation/out/preds_worst_select_ols.eps",dpi=300,bbox_inches='tight')
+plt.savefig("/Users/hannahfrank/Dropbox/Apps/Overleaf/PhD_dissertation/out/preds_worst_select_ols.eps",dpi=300,bbox_inches='tight')
  
 fig = plt.figure(figsize=(10, 13))
 grid = GridSpec(4, 2, figure=fig, wspace=0.05, hspace=0.4)
 for n,y,i,j in zip(["India","India", "Philippines","Philippines", "Somalia","Somalia","Somalia","Somalia"],[2022,2023,2022,2023,2018,2019,2020,2021],[0,0,1,1,2,2,3,3],[0,1,0,1,0,1,0,1]):
-    print(n,y,i,j )
+    print(n,y,i,j)
     ax = fig.add_subplot(grid[i, j])
     plt.plot(df_nonlinear["dd"].loc[(df_nonlinear["country"]==n)&(df_nonlinear["dd"]>=f"{y}-01")&(df_nonlinear["dd"]<=f"{y}-12")],df_nonlinear["fatalities"].loc[(df_nonlinear["country"]==n)&(df_nonlinear["dd"]>=f"{y}-01")&(df_nonlinear["dd"]<=f"{y}-12")],linestyle="solid",color="black",linewidth=1)
     plt.plot(df_nonlinear["dd"].loc[(df_nonlinear["country"]==n)&(df_nonlinear["dd"]>=f"{y}-01")&(df_nonlinear["dd"]<=f"{y}-12")],df_nonlinear["preds_rf"].loc[(df_nonlinear["country"]==n)&(df_nonlinear["dd"]>=f"{y}-01")&(df_nonlinear["dd"]<=f"{y}-12")],linestyle="dotted",color="black",linewidth=1)
@@ -378,12 +378,12 @@ for n,y,i,j in zip(["India","India", "Philippines","Philippines", "Somalia","Som
             plt.text(-2.9, 0.7, n, fontsize=20)
 
 plt.savefig("out/preds_best_select_rf.eps",dpi=300,bbox_inches="tight")
-plt.savefig(f"/Users/hannahfrank/Dropbox/Apps/Overleaf/PhD_dissertation/out/preds_best_select_rf.eps",dpi=300,bbox_inches='tight')
+plt.savefig("/Users/hannahfrank/Dropbox/Apps/Overleaf/PhD_dissertation/out/preds_best_select_rf.eps",dpi=300,bbox_inches='tight')
        
 fig = plt.figure(figsize=(10, 13))
 grid = GridSpec(4, 2, figure=fig, wspace=0.05, hspace=0.4)
 for n,y,i,j in zip(["Thailand","Thailand", "Niger","Niger", "Nigeria","Nigeria","Nigeria","Nigeria"],[2022,2023,2017,2018,2016,2017,2018,2019],[0,0,1,1,2,2,3,3],[0,1,0,1,0,1,0,1]):
-    print(n,y,i,j )
+    print(n,y,i,j)
     ax = fig.add_subplot(grid[i, j])
     plt.plot(df_nonlinear["dd"].loc[(df_nonlinear["country"]==n)&(df_nonlinear["dd"]>=f"{y}-01")&(df_nonlinear["dd"]<=f"{y}-12")],df_nonlinear["fatalities"].loc[(df_nonlinear["country"]==n)&(df_nonlinear["dd"]>=f"{y}-01")&(df_nonlinear["dd"]<=f"{y}-12")],linestyle="solid",color="black",linewidth=1)
     plt.plot(df_nonlinear["dd"].loc[(df_nonlinear["country"]==n)&(df_nonlinear["dd"]>=f"{y}-01")&(df_nonlinear["dd"]<=f"{y}-12")],df_nonlinear["preds_rf"].loc[(df_nonlinear["country"]==n)&(df_nonlinear["dd"]>=f"{y}-01")&(df_nonlinear["dd"]<=f"{y}-12")],linestyle="dotted",color="black",linewidth=1)
@@ -430,13 +430,13 @@ for n,y,i,j in zip(["Thailand","Thailand", "Niger","Niger", "Nigeria","Nigeria",
             plt.text(-2.7, 0.4, n, fontsize=20)
 
 plt.savefig("out/preds_worst_select_rf.eps",dpi=300,bbox_inches="tight")
-plt.savefig(f"/Users/hannahfrank/Dropbox/Apps/Overleaf/PhD_dissertation/out/preds_worst_select_rf.eps",dpi=300,bbox_inches='tight')
+plt.savefig("/Users/hannahfrank/Dropbox/Apps/Overleaf/PhD_dissertation/out/preds_worst_select_rf.eps",dpi=300,bbox_inches='tight')
          
 for n in countries: 
     s=df_linear.loc[(df_linear["country"]==n)]
     s["year"]=df_linear['dd'].loc[(df_linear["country"]==n)].str.extract('(\d{4})')
-    grouped_counts = s.groupby('year').size().reset_index()
-    years=list(grouped_counts["year"].loc[grouped_counts[0]==12])
+    group = s.groupby('year').size().reset_index()
+    years=list(group["year"].loc[group[0]==12])
     cols = 2 
     rows = len(years) // cols + (len(years) % cols > 0)  
     fig=plt.figure(figsize=(10, 3 * rows))
@@ -467,8 +467,8 @@ for n in countries:
 for n in countries: 
     s=df_nonlinear.loc[(df_nonlinear["country"]==n)]
     s["year"]=df_nonlinear['dd'].loc[(df_nonlinear["country"]==n)].str.extract('(\d{4})')
-    grouped_counts = s.groupby('year').size().reset_index()
-    years=list(grouped_counts["year"].loc[grouped_counts[0]==12])
+    group = s.groupby('year').size().reset_index()
+    years=list(group["year"].loc[group[0]==12])
     cols = 2 
     rows = len(years) // cols + (len(years) % cols > 0)  
     fig=plt.figure(figsize=(10, 3 * rows))
@@ -552,8 +552,8 @@ for c,i,j in zip(range(1,31),[0,0,0,0,1,1,1,1,2,2,2,2,3,3,3,3,4,4,4,4],[0,1,2,3,
     else:
         axs[i, j].set_title(f"{dangerous['country'].iloc[-c]}",size=29)
 plt.subplots_adjust(wspace=0.01)
-plt.savefig(f"out/results_dang_shapes_rf_top.eps",dpi=300,bbox_inches="tight")
-plt.savefig(f"/Users/hannahfrank/Dropbox/Apps/Overleaf/PhD_dissertation/out/results_dang_shapes_rf_top.eps",dpi=300,bbox_inches='tight')
+plt.savefig("out/results_dang_shapes_rf_top.eps",dpi=300,bbox_inches="tight")
+plt.savefig("/Users/hannahfrank/Dropbox/Apps/Overleaf/PhD_dissertation/out/results_dang_shapes_rf_top.eps",dpi=300,bbox_inches='tight')
 
 # Top harmless shapes.
 dangerous=pd.DataFrame(dangerous)
@@ -581,8 +581,8 @@ for c,i,j in zip(range(1,31),[0,0,0,0,1,1,1,1,2,2,2,2,3,3,3,3,4,4,4,4],[0,1,2,3,
     else:
         axs[i, j].set_title(f"{dangerous['country'].iloc[c]}",size=29)
 plt.subplots_adjust(wspace=0.01)
-plt.savefig(f"out/results_dang_shapes_rf_bottom.eps",dpi=300,bbox_inches="tight")
-plt.savefig(f"/Users/hannahfrank/Dropbox/Apps/Overleaf/PhD_dissertation/out/results_dang_shapes_rf_bottom.eps",dpi=300,bbox_inches='tight')
+plt.savefig("out/results_dang_shapes_rf_bottom.eps",dpi=300,bbox_inches="tight")
+plt.savefig("/Users/hannahfrank/Dropbox/Apps/Overleaf/PhD_dissertation/out/results_dang_shapes_rf_bottom.eps",dpi=300,bbox_inches='tight')
 
 results={"country":[],"change":[]}
 dangerous={"country":[],"change":[],"shape":[],"n":[]}
@@ -630,8 +630,8 @@ for c,i,j in zip(range(1,31),[0,0,0,0,1,1,1,1,2,2,2,2,3,3,3,3,4,4,4,4],[0,1,2,3,
     else:
         axs[i, j].set_title(f"{dangerous['country'].iloc[-c]}",size=29)
 plt.subplots_adjust(wspace=0.01)
-plt.savefig(f"out/results_dang_shapes_ols_top.eps",dpi=300,bbox_inches="tight")
-plt.savefig(f"/Users/hannahfrank/Dropbox/Apps/Overleaf/PhD_dissertation/out/results_dang_shapes_ols_top.eps",dpi=300,bbox_inches='tight')
+plt.savefig("out/results_dang_shapes_ols_top.eps",dpi=300,bbox_inches="tight")
+plt.savefig("/Users/hannahfrank/Dropbox/Apps/Overleaf/PhD_dissertation/out/results_dang_shapes_ols_top.eps",dpi=300,bbox_inches='tight')
 
 # Top harmless shapes.
 dangerous=pd.DataFrame(dangerous)
@@ -659,9 +659,8 @@ for c,i,j in zip(range(1,31),[0,0,0,0,1,1,1,1,2,2,2,2,3,3,3,3,4,4,4,4],[0,1,2,3,
     else:
         axs[i, j].set_title(f"{dangerous['country'].iloc[c]}",size=29)
 plt.subplots_adjust(wspace=0.01)
-plt.savefig(f"out/results_dang_shapes_ols_bottom.eps",dpi=300,bbox_inches="tight")
-plt.savefig(f"/Users/hannahfrank/Dropbox/Apps/Overleaf/PhD_dissertation/out/results_dang_shapes_ols_bottom.eps",dpi=300,bbox_inches='tight')
-
+plt.savefig("out/results_dang_shapes_ols_bottom.eps",dpi=300,bbox_inches="tight")
+plt.savefig("/Users/hannahfrank/Dropbox/Apps/Overleaf/PhD_dissertation/out/results_dang_shapes_ols_bottom.eps",dpi=300,bbox_inches='tight')
 
 # Co-variation 
 preprocess_min_max_group(df,"n_protest_events","country")
@@ -682,8 +681,8 @@ for y,i in zip(years,range(len(years))):
     ax2.set_yticks([])
     ax1.set_yticks([])
 plt.tight_layout()
-fig.savefig(f"out/covar_Egypt.eps",dpi=300,bbox_inches="tight")
-plt.savefig(f"/Users/hannahfrank/Dropbox/Apps/Overleaf/PhD_dissertation/out/covar_Egypt.eps",dpi=300,bbox_inches='tight')
+fig.savefig("out/covar_Egypt.eps",dpi=300,bbox_inches="tight")
+plt.savefig("/Users/hannahfrank/Dropbox/Apps/Overleaf/PhD_dissertation/out/covar_Egypt.eps",dpi=300,bbox_inches='tight')
 plt.show()
 
 df_s = df.loc[(df["country"]=="Myanmar")]
@@ -701,14 +700,11 @@ for y,i in zip(years,range(len(years))):
     ax2.set_yticks([])
     ax1.set_yticks([])
 plt.tight_layout()
-fig.savefig(f"out/covar_Myanmar.eps",dpi=300,bbox_inches="tight")
-plt.savefig(f"/Users/hannahfrank/Dropbox/Apps/Overleaf/PhD_dissertation/out/covar_Myanmar.eps",dpi=300,bbox_inches='tight')
+fig.savefig("out/covar_Myanmar.eps",dpi=300,bbox_inches="tight")
+plt.savefig("/Users/hannahfrank/Dropbox/Apps/Overleaf/PhD_dissertation/out/covar_Myanmar.eps",dpi=300,bbox_inches='tight')
 plt.show()
 
-
 # DTW 
-t1 = [0.6,0.75,0.8,0.91,0.82,0.6,0.52,0.55,0.62,0.67,0.69,0.8,]
-t2 = [0.5,0.52,0.6,0.55,0.4,0.34,0.29,0.2,0.35,0.5,0.52,0.67]
 y=df.loc[(df["country"]=="Egypt")].n_protest_events
 Egypt=df[["dd","n_protest_events"]].loc[(df["country"]=="Egypt")].reset_index(drop=True)
 matrix=[]
@@ -720,11 +716,11 @@ matrix_l=(matrix_l-matrix_l.min())/(matrix_l.max()-matrix_l.min())
 matrix_l=matrix_l.fillna(0) 
 matrix_l=np.array(matrix_l.T)
 
-t1=matrix_l[100] #  05-2005 - 04-2006
+t1=matrix_l[100] # 05-2005 - 04-2006
 t1=t1+1.2
 t2=matrix_l[210] # 07-2014 - 06-2015
 
-distance, paths = dtw.warping_paths(t1, t2)
+d, paths = dtw.warping_paths(t1, t2)
 best_path = dtw.best_path(paths) 
 path_x, path_y = zip(*best_path)  
 fig, ax = plt.subplots(figsize=(7, 6))
@@ -743,12 +739,11 @@ ax.set_yticks([])
 plt.xticks([0,1,2,3,4,5,6,7,8,9,10,11],[1,2,3,4,5,6,7,8,9,10,11,12],size=22)
 plt.tight_layout()
 plt.savefig("out/dtw1.eps",dpi=300,bbox_inches="tight")
-plt.savefig(f"/Users/hannahfrank/Dropbox/Apps/Overleaf/PhD_dissertation/out/dtw1.eps",dpi=300,bbox_inches='tight')
+plt.savefig("/Users/hannahfrank/Dropbox/Apps/Overleaf/PhD_dissertation/out/dtw1.eps",dpi=300,bbox_inches='tight')
 plt.show()
 
 fig, ax = plt.subplots(figsize=(10, 10))
 paths=paths[1:,1:]
-im = ax.imshow(paths, cmap='Greys',origin="lower")
 plt.plot(path_y, path_x, 'black', linewidth=2, label="Warping Path")  
 for i in range(paths.shape[0]):     
     for j in range(paths.shape[1]):  
@@ -761,6 +756,7 @@ plt.xticks([0,1,2,3,4,5,6,7,8,9,10,11],[1,2,3,4,5,6,7,8,9,10,11,12],size=35)
 plt.yticks([0,1,2,3,4,5,6,7,8,9,10,11],[1,2,3,4,5,6,7,8,9,10,11,12],size=35)
 plt.tight_layout()
 plt.savefig("out/dtw2.eps",dpi=300,bbox_inches="tight")
+plt.savefig("/Users/hannahfrank/Dropbox/Apps/Overleaf/PhD_dissertation/out/dtw2.eps",dpi=300,bbox_inches='tight')
 plt.show()
 
 
