@@ -9,7 +9,7 @@ This repository contains the replication material for "From Protests to Fataliti
 - /out contains the visulizations and tables contained in the paper. 
 - data.py creates the dataset used for the analysis df.csv. 
 - functions.py contains some functions used during the analyses. 
-- main_prediction.py obtains predictions within-country. 
+- main_prediction.py obtains predictions within-country. This file takes roughly three days to run. 
 - main_regression.py obtains across-country protest patterns. 
 - results_predictions.py creates the outputs for the prediction model. 
 - results_regression.R runs the regression model. 
