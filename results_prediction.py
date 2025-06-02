@@ -18,14 +18,14 @@ mpl.rcParams['font.family'] = 'serif'
 mpl.rcParams['font.serif'] = ['Computer Modern Roman']
 mpl.rcParams['text.latex.preamble'] = r'\usepackage{lmodern}\usepackage[T1]{fontenc}'
 
-def boot(data, num_samples=1000, statistic=np.mean):
-    n = len(data)
-    bootstrap_estimates = np.empty(num_samples)
-    for i in range(num_samples):
-        bootstrap_sample = np.random.choice(data, size=n, replace=True)
-        bootstrap_estimates[i] = statistic(bootstrap_sample)
-    standard_error = np.std(bootstrap_estimates)
-    return standard_error
+def boot(s, d_draws=1000):
+    n = len(s)
+    out = np.empty(d_draws)
+    for i in range(d_draws):
+        bootstrap_sample = np.random.choice(s, size=n, replace=True)
+        out[i] = np.mean(bootstrap_sample)
+    se = np.std(out)
+    return se
 
 micro_states={"Dominica":54,
               "Grenada":55,
