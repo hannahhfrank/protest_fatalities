@@ -40,7 +40,7 @@ summary(lm2)
 lm3 <- lm(fatalities_log ~ n_protest_events_norm + n_protest_events_norm_lag_1 + n_protest_events_norm_lag_2 + n_protest_events_norm_lag_3 + fatalities_log_lag1 +NY.GDP.PCAP.CD_log+SP.POP.TOTL_log+v2x_libdem+v2x_clphy+v2x_corr+v2x_rule+v2x_civlib+v2x_neopat + as.factor(country), data = df_s)
 summary(lm3)
 
-lm4 <- lm(fatalities_log ~ cluster_1 + cluster_2 + cluster_3 + cluster_5 + fatalities_log_lag1 +NY.GDP.PCAP.CD_log+SP.POP.TOTL_log+v2x_libdem+v2x_clphy+v2x_corr+v2x_rule+v2x_civlib+v2x_neopat+ as.factor(country), data = df)
+lm4 <- lm(fatalities_log ~ cluster_1 + cluster_2 + cluster_3 + cluster_5 + fatalities_log_lag1 +NY.GDP.PCAP.CD_log+SP.POP.TOTL_log+v2x_libdem+v2x_clphy+v2x_corr+v2x_rule+v2x_civlib+v2x_neopat+ as.factor(country), data = df_s)
 summary(lm4)
 
 lm5 <- lm(fatalities_log ~ n_protest_events_norm + n_protest_events_norm_lag_1 + n_protest_events_norm_lag_2 + n_protest_events_norm_lag_3 + cluster_1 + cluster_2 + cluster_3   + cluster_5 +fatalities_log_lag1  +NY.GDP.PCAP.CD_log+SP.POP.TOTL_log+v2x_libdem+v2x_clphy+v2x_corr+v2x_rule+v2x_civlib+v2x_neopat + as.factor(country), data = df_s)
