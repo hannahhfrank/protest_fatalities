@@ -152,13 +152,12 @@ plt.savefig("/Users/hannahfrank/Dropbox/Apps/Overleaf/PhD_dissertation/out/resul
 
 # Plot
 fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(13, 7))
-marker_size = 150
 linewidth = 3
 fonts=25
-ax1.scatter(mean_mse_linear.index, mean_mse_linear['mean'], color="black", marker='o', s=marker_size)
-ax1.errorbar(mean_mse_linear.index, mean_mse_linear['mean'], yerr=1.96 *mean_mse_linear['std'], fmt='none', color="black", linewidth=linewidth)
-ax2.scatter(mean_mse_rf.index, mean_mse_rf['mean'], color="black", marker='o', s=marker_size)
-ax2.errorbar(mean_mse_rf.index, mean_mse_rf['mean'], yerr=1.96 *mean_mse_rf['std'], fmt='none', color="black", linewidth=linewidth)
+ax1.scatter(mean_mse_linear.index, mean_mse_linear['mean'], color="black", marker='o' )
+ax1.errorbar(mean_mse_linear.index, mean_mse_linear['mean'], yerr=3 *(mean_mse_linear['std']/np.sqrt(len(df_nonlinear))), fmt='none', color="black", linewidth=linewidth)
+ax2.scatter(mean_mse_rf.index, mean_mse_rf['mean'], color="black", marker='o')
+ax2.errorbar(mean_mse_rf.index, mean_mse_rf['mean'], yerr=3 *(mean_mse_linear['std']/np.sqrt(len(df_nonlinear))), fmt='none', color="black", linewidth=linewidth)
 ax1.grid(False)
 ax2.grid(False)
 ax1.set_yticks([0.011,0.012,0.013,0.014,0.015,0.016,0.017],[0.011,0.012,0.013,0.014,0.015,0.016,0.017],fontsize=18)
