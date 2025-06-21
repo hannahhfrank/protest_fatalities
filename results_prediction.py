@@ -18,10 +18,10 @@ mpl.rcParams['font.family'] = 'serif'
 mpl.rcParams['font.serif'] = ['Computer Modern Roman']
 mpl.rcParams['text.latex.preamble'] = r'\usepackage{lmodern}\usepackage[T1]{fontenc}'
 
-def boot(s, d_draws=1000):
+def boot(s, n_draws=1000):
     n = len(s)
-    out = np.empty(d_draws)
-    for i in range(d_draws):
+    out = np.empty(n_draws)
+    for i in range(n_draws):
         bootstrap_sample = np.random.choice(s, size=n, replace=True)
         out[i] = np.mean(bootstrap_sample)
     se = np.std(out)

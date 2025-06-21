@@ -117,8 +117,7 @@ def general_model(ts,
                   X: bool = None,
                   norm: bool=False,
                   metric: str='mse',
-                  train_test_split=0.7,
-                  opti_grid=None,
+                  grid=None,
                   ar_test: list=[1,2,4,6,12]):
     
     if norm==True:
@@ -149,18 +148,18 @@ def general_model(ts,
                 X=X.iloc[-len(in_put):].reset_index(drop=True)
                 in_put=pd.concat([X, in_put],axis=1)
                         
-            y_train = output[:-(len(ts)-int(train_test_split*len(ts)))]
-            x_train = in_put[:-(len(ts)-int(train_test_split*len(ts)))]
+            y_train = output[:-(len(ts)-int(0.7*len(ts)))]
+            x_train = in_put[:-(len(ts)-int(0.7*len(ts)))]
             
-            y_test = output[-(len(ts)-int(train_test_split*len(ts))):]        
-            x_test = in_put[-(len(ts)-int(train_test_split*len(ts))):]     
+            y_test = output[-(len(ts)-int(0.7*len(ts))):]        
+            x_test = in_put[-(len(ts)-int(0.7*len(ts))):]     
             
-            if opti_grid is not None:
+            if grid is not None:
                 val_train_ids = list(y_train[:int(0.5*len(y_train))].index)
                 val_test_ids = list(y_train[int(0.5*len(y_train)):].index)
                 splits = np.array([-1] * len(val_train_ids) + [0] * len(val_test_ids))
                 splits = PredefinedSplit(test_fold=splits)
-                grid_search = GridSearchCV(estimator=model_pred, param_grid=opti_grid, cv=splits, verbose=0, n_jobs=-1)
+                grid_search = GridSearchCV(estimator=model_pred, param_grid=grid, cv=splits, verbose=0, n_jobs=-1)
                 grid_search.fit(x_train, y_train)
                 pred = grid_search.predict(x_test)
                 
@@ -204,7 +203,6 @@ def general_dynamic_model(y,
                     norm: bool=False,
                     model=TimeSeriesKMeans(n_clusters=5,metric="dtw",max_iter_barycenter=100,verbose=0,random_state=0),
                     metric: str='mse',
-                    train_test_split=0.7,
                     opti_grid=None,
                     ar_test: list=[1,2,4,6,12],
                     cluster_n:list=[3,5,7],
@@ -224,7 +222,7 @@ def general_dynamic_model(y,
             model.n_clusters=k
             try: 
                 # Training 
-                y_s=y_cluster.iloc[:int(train_test_split*len(y_cluster))]
+                y_s=y_cluster.iloc[:int(0.7*len(y_cluster))]
                 seq_matrix=[]
                 for i in range(w,len(y_s)):
                     seq_matrix.append(y_cluster.iloc[i-w:i])   
@@ -311,11 +309,11 @@ def general_dynamic_model(y,
                         output=Y.reset_index(drop=True)
                         output=output[-len(in_put):]
                 
-                        y_train = output[:-(len(y)-int(train_test_split*len(y)))]
-                        x_train = in_put[:-(len(y)-int(train_test_split*len(y)))]
+                        y_train = output[:-(len(y)-int(0.7*len(y)))]
+                        x_train = in_put[:-(len(y)-int(0.7*len(y)))]
                 
-                        y_test = output[-(len(y)-int(train_test_split*len(y))):]        
-                        x_test = in_put[-(len(y)-int(train_test_split*len(y))):] 
+                        y_test = output[-(len(y)-int(0.7*len(y))):]        
+                        x_test = in_put[-(len(y)-int(0.7*len(y))):] 
                                 
                         if opti_grid is not None: 
                             val_train_ids = list(y_train[:int(0.5*len(y_train))].index)

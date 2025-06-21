@@ -17,11 +17,6 @@ mpl.rcParams['text.latex.preamble'] = r'\usepackage{lmodern}\usepackage[T1]{font
 import warnings
 warnings.simplefilter(action='ignore', category=FutureWarning)
 
-random_grid = {'n_estimators': [int(x) for x in np.linspace(start = 10, stop = 2000, num = 7)],
-               'max_depth': [int(x) for x in np.linspace(10, 50, num = 5)]}
-
-param_grid_lasso = {'alpha': [0.0001, 0.001, 0.01, 0.1, 0.5, 1, 2, 5, 10]}
-
 micro_states={"Dominica":54,
               "Grenada":55,
               "Saint Lucia":56,
