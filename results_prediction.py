@@ -148,7 +148,7 @@ plt.savefig("/Users/hannahfrank/Dropbox/Apps/Overleaf/PhD_dissertation/out/resul
 
 # Confidence intervals
 means = [df_nonlinear["mse_rf"].mean(),df_nonlinear["mse_rfx"].mean(),df_nonlinear["mse_drf"].mean(),df_nonlinear["mse_drfx"].mean()]
-std_error = [boot(df_nonlinear["mse_rf"]),boot(df_nonlinear["mse_rfx"]),boot(df_nonlinear["mse_drf"]),boot(df_nonlinear["mse_drfx"])]
+std_error = [df_nonlinear["mse_rf"].std(),df_nonlinear["mse_rfx"].std(),df_nonlinear["mse_drf"].std(),df_nonlinear["mse_drfx"].std()]
 mean_mse_rf = pd.DataFrame({'mean': means,'std': std_error})
 means = [df_linear["mse_ols"].mean(),df_linear["mse_olsx"].mean(),df_linear["mse_dols"].mean(),df_linear["mse_dolsx"].mean()]
 std_error = [df_linear["mse_ols"].std(),df_linear["mse_olsx"].std(),df_linear["mse_dols"].std(),df_linear["mse_dolsx"].std()]
@@ -159,13 +159,13 @@ fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(13, 7))
 ax1.scatter(mean_mse_linear.index, mean_mse_linear['mean'], color="black", marker='o',s=150)
 ax1.errorbar(mean_mse_linear.index, mean_mse_linear['mean'], yerr=1.96 *(mean_mse_linear['std']/np.sqrt(len(df_nonlinear))), fmt='none', color="black", linewidth=3)
 ax2.scatter(mean_mse_rf.index, mean_mse_rf['mean'], color="black", marker='o',s=150)
-ax2.errorbar(mean_mse_rf.index, mean_mse_rf['mean'], yerr=1.96 *(mean_mse_linear['std']/np.sqrt(len(df_nonlinear))), fmt='none', color="black", linewidth=3)
+ax2.errorbar(mean_mse_rf.index, mean_mse_rf['mean'], yerr=1.96 *(mean_mse_rf['std']/np.sqrt(len(df_nonlinear))), fmt='none', color="black", linewidth=3)
 ax1.grid(False)
 ax2.grid(False)
 ax1.set_ylim(0.008,0.02)
-ax2.set_ylim(0.005,0.017)
+ax2.set_ylim(0.006,0.016)
 ax1.set_yticks([0.008,0.009,0.01,0.011,0.012,0.013,0.014,0.015,0.016,0.017,0.018,0.019,0.02],[0.008,0.009,0.01,0.011,0.012,0.013,0.014,0.015,0.016,0.017,0.018,0.019,0.02],fontsize=18)
-ax2.set_yticks([0.005,0.006,0.007,0.008,0.009,0.01,0.011,0.012,0.013,0.014,0.015,0.016,0.017],[0.005,0.006,0.007,0.008,0.009,0.01,0.011,0.012,0.013,0.014,0.015,0.016,0.017],size=18)
+ax2.set_yticks([0.006,0.007,0.008,0.009,0.01,0.011,0.012,0.013,0.014,0.015,0.016],[0.006,0.007,0.008,0.009,0.01,0.011,0.012,0.013,0.014,0.015,0.016],size=18)
 ax2.yaxis.set_ticks_position('right')
 ax1.set_xticks([*range(4)],['RR','RRX','DRR','DRRX'],fontsize=18)
 ax2.set_xticks([*range(4)],['RF','RFX','DRF','DRFX'],fontsize=18)
@@ -187,20 +187,20 @@ ax1.plot([1,1],[0.0173,0.0172],linewidth=0.5,color="black")
 ax1.plot([3,3],[0.0173,0.0172],linewidth=0.5,color="black")
 ax1.text(1.92, 0.01729, "***", fontsize=12)
 
-ax2.plot([0,1],[0.0086,0.0086],linewidth=0.5,color="black")
-ax2.plot([0,0],[0.0086,0.0087],linewidth=0.5,color="black")
-ax2.plot([1,1],[0.0086,0.0087],linewidth=0.5,color="black")
-ax2.text(0.42,0.00825, "***", fontsize=12)
+ax2.plot([0,1],[0.0092,0.0092],linewidth=0.5,color="black")
+ax2.plot([0,0],[0.0092,0.0093],linewidth=0.5,color="black")
+ax2.plot([1,1],[0.0092,0.0093],linewidth=0.5,color="black")
+ax2.text(0.42,0.0089, "***", fontsize=12)
 
-ax2.plot([0,2],[0.0077,0.0077],linewidth=0.5,color="black")
-ax2.plot([0,0],[0.0077,0.0078],linewidth=0.5,color="black")
-ax2.plot([2,2],[0.0077,0.0078],linewidth=0.5,color="black")
-ax2.text(0.91,0.00735, "***", fontsize=12)
+ax2.plot([0,2],[0.0085,0.0085],linewidth=0.5,color="black")
+ax2.plot([0,0],[0.0085,0.0086],linewidth=0.5,color="black")
+ax2.plot([2,2],[0.0085,0.0086],linewidth=0.5,color="black")
+ax2.text(0.91,0.00821, "***", fontsize=12)
 
-ax2.plot([1,3],[0.0135,0.0135],linewidth=0.5,color="black")
-ax2.plot([1,1],[0.0135,0.0134],linewidth=0.5,color="black")
-ax2.plot([3,3],[0.0135,0.0134],linewidth=0.5,color="black")
-ax2.text(1.92,0.01348, "***", fontsize=12)
+ax2.plot([1,3],[0.0128,0.0128],linewidth=0.5,color="black")
+ax2.plot([1,1],[0.0128,0.0127],linewidth=0.5,color="black")
+ax2.plot([3,3],[0.0128,0.0127],linewidth=0.5,color="black")
+ax2.text(1.92,0.01278, "***", fontsize=12)
 
 plt.savefig("out/results_main_plot2.eps",dpi=300,bbox_inches="tight")
 plt.savefig("/Users/hannahfrank/Dropbox/Apps/Overleaf/PhD_dissertation/out/results_main_plot2.eps",dpi=300,bbox_inches='tight')
