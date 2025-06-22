@@ -122,12 +122,14 @@ for k in [3,5,7]:
         clusters_s = np.unique(clusters)
         centroids = []
             
-        for cluster_id in clusters_s:
-            cluster_seq = [matrix_in[i] for i, cluster in enumerate(clusters) if cluster == cluster_id]
+        # Get centroids
+        for ids in clusters_s:
+            cluster_seq = [matrix_in[i] for i, cluster in enumerate(clusters) if cluster == ids]
             matrix_d = dtw.distance_matrix_fast(cluster_seq)
-            representative_idx = np.argmin(matrix_d.sum(axis=0))
-            centroids.append(cluster_seq[representative_idx])
-                
+            rep_idx = np.argmin(matrix_d.sum(axis=0))
+            centroids.append(cluster_seq[rep_idx])
+        
+        # Plot
         n_clusters = len(centroids)
         cols = 3
         rows = n_clusters // cols + (n_clusters % cols > 0)
@@ -144,6 +146,7 @@ for k in [3,5,7]:
         plt.savefig("out/clusters_clusters.eps",dpi=300,bbox_inches="tight")
         plt.show()
 
+# Save df
 df_final=pd.merge(final_dynamic_linear, df_cen_final[["country","clusters","clusters_cen"]],on=["clusters","country"])
 dummies = pd.get_dummies(df_final['clusters_cen'], prefix='cluster').astype(int)
 final_shapes_s = pd.concat([df_final, dummies], axis=1)

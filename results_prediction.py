@@ -800,12 +800,11 @@ plt.show()
 
 fig, ax = plt.subplots(figsize=(10, 10))
 paths=paths[1:,1:]
-plt.plot(path_y, path_x, 'black', linewidth=2, label="Warping Path")  
+im = ax.imshow(paths, cmap='Greys',origin="lower")
+plt.plot(path_y, path_x, 'black', linewidth=2)  
 for i in range(paths.shape[0]):     
     for j in range(paths.shape[1]):  
-        ax.text(j, i,                
-                str(round(paths[i, j],2)),
-                ha='center', va='center', color='black', fontsize=20)
+        ax.text(j, i, str(round(paths[i, j],2)), ha='center', va='center', color='black', fontsize=20)
 plt.ylabel("Egypt (05-2005---04-2006)",size=35)
 plt.xlabel("Egypt (07-2014---06-2015)",size=35)
 plt.xticks([0,1,2,3,4,5,6,7,8,9,10,11],[1,2,3,4,5,6,7,8,9,10,11,12],size=35)
