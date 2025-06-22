@@ -86,7 +86,7 @@ for c in countries:
     preds["preds_drfx_reverted"] = list(drfx["drf_pred_revert"])  
     shapes_rf.update({f"drfx_{c}":[drfx["s"],drfx["shapes"].tolist(),drfx["clusters"].tolist()]})
     final_dynamic = pd.concat([final_dynamic, preds])
-    final_dynamic.to_csv("data/preds_dynamic_nonlinear2.csv")  
+    final_dynamic.to_csv("data/preds_dynamic_nonlinear.csv")  
      
     # Linear
     dOLS = general_dynamic_model(ts,Y,model_pred=Ridge(max_iter=5000),grid=grid_lasso,norm=True,metric="mse") 
@@ -105,7 +105,7 @@ for c in countries:
     preds["preds_dolsx_reverted"] = list(dOLSx["drf_pred_revert"])  
     shapes_ols.update({f"dolsx_{c}":[dOLSx["s"],dOLSx["shapes"].tolist(),dOLSx["clusters"].tolist()]})
     final_dynamic_linear = pd.concat([final_dynamic_linear, preds])
-    final_dynamic_linear.to_csv("data/preds_dynamic_linear2.csv")  
+    final_dynamic_linear.to_csv("data/preds_dynamic_linear.csv")  
     
 with open("data/rf_shapes2.json", 'w') as json_file:
     json.dump(shapes_rf, json_file)

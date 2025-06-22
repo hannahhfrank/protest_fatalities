@@ -203,7 +203,7 @@ def general_dynamic_model(y,
                     norm: bool=False,
                     model=TimeSeriesKMeans(n_clusters=5,metric="dtw",max_iter_barycenter=100,verbose=0,random_state=0),
                     metric: str='mse',
-                    opti_grid=None,
+                    grid=None,
                     ar_test: list=[1,2,4,6,12],
                     cluster_n:list=[3,5,7],
                     w_length:list=[3,5,7,9]):
@@ -315,12 +315,12 @@ def general_dynamic_model(y,
                         y_test = output[-(len(y)-int(0.7*len(y))):]        
                         x_test = in_put[-(len(y)-int(0.7*len(y))):] 
                                 
-                        if opti_grid is not None: 
+                        if grid is not None: 
                             val_train_ids = list(y_train[:int(0.5*len(y_train))].index)
                             val_test_ids = list(y_train[int(0.5*len(y_train)):].index)
                             splits = np.array([-1] * len(val_train_ids) + [0] * len(val_test_ids))
                             splits = PredefinedSplit(test_fold=splits)
-                            grid_search = GridSearchCV(estimator=model_pred, param_grid=opti_grid, cv=splits, verbose=0, n_jobs=-1)
+                            grid_search = GridSearchCV(estimator=model_pred, param_grid=grid, cv=splits, verbose=0, n_jobs=-1)
                             grid_search.fit(x_train, y_train.values.ravel())
                             pred = grid_search.predict(x_test)
                             
