@@ -107,10 +107,10 @@ for c in countries:
     final_dynamic_linear = pd.concat([final_dynamic_linear, preds])
     final_dynamic_linear.to_csv("data/preds_dynamic_linear.csv")  
     
-with open("data/rf_shapes2.json", 'w') as json_file:
+with open("data/rf_shapes.json", 'w') as json_file:
     json.dump(shapes_rf, json_file)
 
-with open("data/ols_shapes2.json", 'w') as json_file:
+with open("data/ols_shapes.json", 'w') as json_file:
     json.dump(shapes_ols, json_file)
     
 
