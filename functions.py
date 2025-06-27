@@ -221,6 +221,7 @@ def general_dynamic_model(y,
         for w in w_length:
             model.n_clusters=k
             try: 
+                # adapted from: https://github.com/ThomasSchinca/ShapeF/blob/Thomas_draft/functions.py
                 # Training 
                 y_s=y_cluster.iloc[:int(0.7*len(y_cluster))]
                 seq_matrix=[]
@@ -377,6 +378,8 @@ def clustering(y,
     for k in cluster_n:
         for w in w_length:
             model.n_clusters=k
+            
+            # adapted from: https://github.com/ThomasSchinca/ShapeF/blob/Thomas_draft/functions.py
             seq_matrix=[]
             for i in range(w,len(y)):
                 seq_matrix.append(y.iloc[i-w:i])  
