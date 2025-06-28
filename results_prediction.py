@@ -73,34 +73,34 @@ df_nonlinear["mse_rf"]=((df_nonlinear["fatalities"] - df_nonlinear["preds_rf"]) 
 df_nonlinear["mse_rfx"]=((df_nonlinear["fatalities"] - df_nonlinear["preds_rfx"]) ** 2)
 df_nonlinear["mse_drf"]=((df_nonlinear["fatalities"] - df_nonlinear["preds_drf"]) ** 2) 
 df_nonlinear["mse_drfx"]=((df_nonlinear["fatalities"] - df_nonlinear["preds_drfx"]) ** 2) 
-means = [df_nonlinear["mse_rf"].mean(),df_nonlinear["mse_rfx"].mean(),df_nonlinear["mse_drf"].mean(),df_nonlinear["mse_drfx"].mean()]
-std_error = [boot(df_nonlinear["mse_rf"]),boot(df_nonlinear["mse_rfx"]),boot(df_nonlinear["mse_drf"]),boot(df_nonlinear["mse_drfx"])]
-mean_mse_rf = pd.DataFrame({'mean': means,'std': std_error})
+mean = [df_nonlinear["mse_rf"].mean(),df_nonlinear["mse_rfx"].mean(),df_nonlinear["mse_drf"].mean(),df_nonlinear["mse_drfx"].mean()]
+std = [boot(df_nonlinear["mse_rf"]),boot(df_nonlinear["mse_rfx"]),boot(df_nonlinear["mse_drf"]),boot(df_nonlinear["mse_drfx"])]
+final_rf = pd.DataFrame({'mean': mean,'std': std})
  
 df_linear["mse_ols"]=((df_linear["fatalities"] - df_linear["preds_ols"]) ** 2) 
 df_linear["mse_olsx"]=((df_linear["fatalities"] - df_linear["preds_olsx"]) ** 2)
 df_linear["mse_dols"]=((df_linear["fatalities"] - df_linear["preds_dols"]) ** 2) 
 df_linear["mse_dolsx"]=((df_linear["fatalities"] - df_linear["preds_dolsx"]) ** 2) 
-means = [df_linear["mse_ols"].mean(),df_linear["mse_olsx"].mean(),df_linear["mse_dols"].mean(),df_linear["mse_dolsx"].mean()]
-std_error = [boot(df_linear["mse_ols"]),boot(df_linear["mse_olsx"]),boot(df_linear["mse_dols"]),boot(df_linear["mse_dolsx"])]
-mean_mse_linear = pd.DataFrame({'mean': means,'std': std_error})
+mean = [df_linear["mse_ols"].mean(),df_linear["mse_olsx"].mean(),df_linear["mse_dols"].mean(),df_linear["mse_dolsx"].mean()]
+std = [boot(df_linear["mse_ols"]),boot(df_linear["mse_olsx"]),boot(df_linear["mse_dols"]),boot(df_linear["mse_dolsx"])]
+final_linear = pd.DataFrame({'mean': mean,'std': std})
 
-print(mean_mse_linear)
+print(final_linear)
 print(round(ttest_rel(df_linear["mse_ols"], df_linear["mse_olsx"])[1],5))
 print(round(ttest_rel(df_linear["mse_ols"], df_linear["mse_dols"])[1],5))
 print(round(ttest_rel(df_linear["mse_olsx"], df_linear["mse_dolsx"])[1],5))
 
-print(mean_mse_rf)
+print(final_rf)
 print(round(ttest_rel(df_nonlinear["mse_rf"], df_nonlinear["mse_rfx"])[1],5))
 print(round(ttest_rel(df_nonlinear["mse_rf"], df_nonlinear["mse_drf"])[1],5))
 print(round(ttest_rel(df_nonlinear["mse_rfx"], df_nonlinear["mse_drfx"])[1],5))
 
 # Plot
 fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(13, 7))
-ax1.scatter(mean_mse_linear.index, mean_mse_linear['mean'], color="black", marker='o', s=150)
-ax1.errorbar(mean_mse_linear.index, mean_mse_linear['mean'], yerr=mean_mse_linear['std'], fmt='none', color="black", linewidth=3)
-ax2.scatter(mean_mse_rf.index, mean_mse_rf['mean'], color="black", marker='o', s=150)
-ax2.errorbar(mean_mse_rf.index, mean_mse_rf['mean'], yerr=mean_mse_rf['std'], fmt='none', color="black", linewidth=3)
+ax1.scatter(final_linear.index, final_linear['mean'], color="black", marker='o', s=150)
+ax1.errorbar(final_linear.index, final_linear['mean'], yerr=final_linear['std'], fmt='none', color="black", linewidth=3)
+ax2.scatter(final_rf.index, final_rf['mean'], color="black", marker='o', s=150)
+ax2.errorbar(final_rf.index, final_rf['mean'], yerr=final_rf['std'], fmt='none', color="black", linewidth=3)
 ax1.grid(False)
 ax2.grid(False)
 ax1.set_ylim(0.0118, 0.0165)
@@ -149,17 +149,17 @@ plt.savefig("/Users/hannahfrank/Dropbox/Apps/Overleaf/PhD_dissertation/out/resul
 # Confidence intervals
 means = [df_nonlinear["mse_rf"].mean(),df_nonlinear["mse_rfx"].mean(),df_nonlinear["mse_drf"].mean(),df_nonlinear["mse_drfx"].mean()]
 std_error = [df_nonlinear["mse_rf"].std(),df_nonlinear["mse_rfx"].std(),df_nonlinear["mse_drf"].std(),df_nonlinear["mse_drfx"].std()]
-mean_mse_rf = pd.DataFrame({'mean': means,'std': std_error})
+final_rf = pd.DataFrame({'mean': means,'std': std_error})
 means = [df_linear["mse_ols"].mean(),df_linear["mse_olsx"].mean(),df_linear["mse_dols"].mean(),df_linear["mse_dolsx"].mean()]
 std_error = [df_linear["mse_ols"].std(),df_linear["mse_olsx"].std(),df_linear["mse_dols"].std(),df_linear["mse_dolsx"].std()]
-mean_mse_linear = pd.DataFrame({'mean': means,'std': std_error})
+final_linear = pd.DataFrame({'mean': means,'std': std_error})
 
 # Plot
 fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(13, 7))
-ax1.scatter(mean_mse_linear.index, mean_mse_linear['mean'], color="black", marker='o',s=150)
-ax1.errorbar(mean_mse_linear.index, mean_mse_linear['mean'], yerr=1.96 *(mean_mse_linear['std']/np.sqrt(len(df_nonlinear))), fmt='none', color="black", linewidth=3)
-ax2.scatter(mean_mse_rf.index, mean_mse_rf['mean'], color="black", marker='o',s=150)
-ax2.errorbar(mean_mse_rf.index, mean_mse_rf['mean'], yerr=1.96 *(mean_mse_rf['std']/np.sqrt(len(df_nonlinear))), fmt='none', color="black", linewidth=3)
+ax1.scatter(final_linear.index, final_linear['mean'], color="black", marker='o',s=150)
+ax1.errorbar(final_linear.index, final_linear['mean'], yerr=1.96 *(final_linear['std']/np.sqrt(len(df_nonlinear))), fmt='none', color="black", linewidth=3)
+ax2.scatter(final_rf.index, final_rf['mean'], color="black", marker='o',s=150)
+ax2.errorbar(final_rf.index, final_rf['mean'], yerr=1.96 *(final_rf['std']/np.sqrt(len(df_nonlinear))), fmt='none', color="black", linewidth=3)
 ax1.grid(False)
 ax2.grid(False)
 ax1.set_ylim(0.008,0.02)
