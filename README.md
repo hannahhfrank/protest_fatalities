@@ -37,4 +37,3 @@ python results_predictions.py
 Rscript results_regression.R
 ```
 
-If there are any issues, please contact the authors. 
