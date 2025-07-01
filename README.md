@@ -14,7 +14,7 @@ This repository contains the replication material for "From Protests to Fataliti
 - results_predictions.py creates the outputs for the prediction model. 
 - results_regression.R runs the regression model. 
 
-## Replication instruction
+## Replication instructions
 First create a virtual environment, activate the environment and install the libraries. 
 
 ```
