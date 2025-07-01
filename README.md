@@ -1,7 +1,7 @@
 This repository contains the replication material for "From Protests to Fatalities: Identifying Dangerous Temporal Patterns in Civil Conflict Transitions".
 
 ## Requirements
-- The analysis is run in Python 3.12.3
+- The analysis is run in Python 3.12.3 and R version 4.3.1.
 - The required python libraries are listed in requirements.txt
 
 ## Descriptions of files 
@@ -13,6 +13,31 @@ This repository contains the replication material for "From Protests to Fataliti
 - main_regression.py obtains across-country protest patterns. 
 - results_predictions.py creates the outputs for the prediction model. 
 - results_regression.R runs the regression model. 
+
+## Replication instruction
+First create a virtual environment, activate the environment and install the libraries. 
+
+```
+conda create -n protest_fatalities python=3.12.3
+conda activate protest_fatalities
+pip install -r requirements.txt
  
+```
 
+The run the files after each other. This will take approximately 3 days.
 
+```
+python main_prediction.py
+python main_regression.py
+
+´´´
+
+The final results are produced by running. For the python script, make sure to comment out the out-paths leading to my Dropbox. For the Rscript, make sure to manually install the packages and set the working directory. 
+
+ ```
+python results_predictions.py
+Rscript results_regression.R
+
+´´´
+
+If there are any issues, please contact the authors. 
