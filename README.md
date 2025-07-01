@@ -21,7 +21,6 @@ First create a virtual environment, activate the environment and install the lib
 conda create -n protest_fatalities python=3.12.3
 conda activate protest_fatalities
 pip install -r requirements.txt
- 
 ```
 
 The run the files after each other. This will take approximately 3 days.
@@ -29,15 +28,13 @@ The run the files after each other. This will take approximately 3 days.
 ```
 python main_prediction.py
 python main_regression.py
-
-´´´
+```
 
 The final results are produced by running. For the python script, make sure to comment out the out-paths leading to my Dropbox. For the Rscript, make sure to manually install the packages and set the working directory. 
 
  ```
 python results_predictions.py
 Rscript results_regression.R
-
-´´´
+```
 
 If there are any issues, please contact the authors. 
