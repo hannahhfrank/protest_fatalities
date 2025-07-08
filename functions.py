@@ -20,7 +20,7 @@ def preprocess_min_max_group(df, x, group):
 
 def simple_imp_grouped(df, group, vars_input):
     
-    # Split
+    # Split 
     train = pd.DataFrame()
     test = pd.DataFrame()
     for c in df.country.unique():
@@ -30,51 +30,42 @@ def simple_imp_grouped(df, group, vars_input):
         train = pd.concat([train, train_s])
         test = pd.concat([test, test_s])
             
+    # Fill
     df_filled = pd.DataFrame()
     for c in df[group].unique():
-        df_s = train.loc[train[group] == c]
-        df_imp = df_s[vars_input]
-
-        # If completely missing
-        if df_imp.isnull().all().all():
-            df_imp_train_df=df_imp
-            df_imp_trans_df=df[vars_input].loc[df["country"] == c]
-            
-        else: 
-            # Train
-            imputer = SimpleImputer(strategy='mean')
-            imputer.fit(df_imp)
-            df_imp_train = imputer.transform(df_imp)
-            df_imp_train_df = pd.DataFrame(df_imp_train)
-            df_imp_train_df.columns=vars_input
-            
-            # Test
-            df_s = test.loc[test[group] == c]
-            df_imp = df_s[vars_input]
-            
-            if df_imp.isnull().all().all():
-                df_imp_test_df=df_imp.fillna(df_imp_train_df.mean().mean())
-                
-            else:
-                imputer.fit(df_imp)
-                df_imp_test = imputer.transform(df_imp)
-                df_imp_test_df = pd.DataFrame(df_imp_test)    
-                df_imp_test_df.columns=vars_input
         
-            # Merge
-            df_imp_trans_df = pd.concat([df_imp_train_df, df_imp_test_df])
-        df_s = df.loc[df["country"] == c]
-        df_filled = pd.concat([df_filled, df_imp_trans_df])
-    
+        # Training
+        df_s = train.loc[train[group] == c]
+        imp = df_s[vars_input]
+        df_imp = imp.copy(deep=True)
+        imputer = SimpleImputer(strategy='mean')
+        imputer.fit(df_imp)
+        df_imp_train = imputer.transform(df_imp)
+        df_imp_train_df = pd.DataFrame(df_imp_train)
+        
+        # Test
+        df_s = test.loc[test[group] == c]
+        imp = df_s[vars_input]
+        df_imp = imp.copy(deep=True)        
+        df_imp_test = imputer.transform(df_imp)
+        df_imp_test_df = pd.DataFrame(df_imp_test)        
+
+        # Merge
+        df_imp_final = pd.concat([df_imp_train_df, df_imp_test_df])
+        df_filled = pd.concat([df_filled, df_imp_final])
+
+    # Merge
     df_filled.columns = vars_input
+    df_filled = df_filled.reset_index(drop=True)
     feat_complete = df.drop(columns=vars_input)
-    df_filled = df_filled.set_index(feat_complete.index)
     out = pd.concat([feat_complete, df_filled], axis=1)
     out=out.reset_index(drop=True)
     
     return out
 
+
 def linear_imp_grouped(df, group, vars_input):
+    
     # Split data 
     train = pd.DataFrame()
     test = pd.DataFrame()
@@ -90,19 +81,21 @@ def linear_imp_grouped(df, group, vars_input):
         
         # Train
         df_s = train.loc[train[group] == c]
-        df_imp = df_s[vars_input]
-        df_imp = df_imp.copy(deep=True)
+        imp = df_s[vars_input]
+        df_imp = imp.copy(deep=True)
         df_imp_train_df = df_imp.interpolate(limit_direction="both")
         
         # Test
         df_s = test.loc[test[group] == c]
-        df_imp = df_s[vars_input]
-        df_imp = df_imp.copy(deep=True)        
+        imp = df_s[vars_input]
+        df_imp = imp.copy(deep=True)        
         df_imp_test_df = df_imp.interpolate(limit_direction="forward")
         
         # Merge
         df_imp_trans_df = pd.concat([df_imp_train_df, df_imp_test_df])
         df_filled = pd.concat([df_filled, df_imp_trans_df])
+        
+    # Merge   
     df_filled.columns = vars_input
     df_filled = df_filled.reset_index(drop=True)
     feat_complete = df.drop(columns=vars_input)
@@ -298,7 +291,7 @@ def general_dynamic_model(y,
                         else: 
                             in_put=pd.concat([in_put,clusters],axis=1)
                                     
-                            in_put=in_put.fillna(0)
+                        in_put=in_put.fillna(0)
                                     
                         if X is not None:
                             X=X.reset_index(drop=True)
