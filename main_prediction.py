@@ -1,7 +1,6 @@
 import pandas as pd
 import numpy as np
 from functions import general_model,general_dynamic_model,preprocess_min_max_group
-import matplotlib.pyplot as plt
 import json
 import matplotlib as mpl
 from sklearn.linear_model import Ridge
@@ -70,7 +69,7 @@ for c in countries:
     X=df[["fatalities_norm_lag1",'NY.GDP.PCAP.CD_log','SP.POP.TOTL_log',"v2x_libdem","v2x_clphy","v2x_corr","v2x_rule","v2x_civlib","v2x_neopat"]].loc[df["country"]==c]
    
     # DRF
-    drf = general_dynamic_model(ts,Y,grid=grid,norm=True,metric="mse") 
+    drf = general_dynamic_model(ts,Y,grid=None,norm=True,metric="mse") 
     preds = pd.DataFrame(df["dd"].loc[df["country"]==c][-len(drf["actuals"]):])
     preds.columns = ["dd"]  
     preds["country"] = c
@@ -81,7 +80,7 @@ for c in countries:
     shapes_rf.update({f"drf_{c}":[drf["s"],drf["shapes"].tolist(),drf["clusters"].tolist()]})
            
     # DRFX
-    drfx = general_dynamic_model(ts,Y,X=X,norm=True,grid=grid,metric="mse")
+    drfx = general_dynamic_model(ts,Y,X=X,norm=True,grid=None,metric="mse")
     preds["preds_drfx"] = list(drfx["drf_pred"])
     preds["preds_drfx_reverted"] = list(drfx["drf_pred_revert"])  
     shapes_rf.update({f"drfx_{c}":[drfx["s"],drfx["shapes"].tolist(),drfx["clusters"].tolist()]})
@@ -129,7 +128,7 @@ for c in countries:
     X=df[["fatalities_norm_lag1",'NY.GDP.PCAP.CD_log','SP.POP.TOTL_log',"v2x_libdem","v2x_clphy","v2x_corr","v2x_rule","v2x_civlib","v2x_neopat"]].loc[df["country"]==c]
         
     # RF
-    rf = general_model(ts,Y,grid=grid,norm=True,metric="mse") 
+    rf = general_model(ts,Y,grid=None,norm=True,metric="mse") 
     preds = pd.DataFrame(df["dd"].loc[df["country"]==c][-len(rf["actuals"]):])
     preds.columns = ["dd"]  
     preds["country"] = c
@@ -139,7 +138,7 @@ for c in countries:
     preds["preds_rf_reverted"] = list(rf["rf_pred_revert"])
         
     # RFX
-    rfx = general_model(ts,Y,X=X,grid=grid,norm=True,metric="mse") 
+    rfx = general_model(ts,Y,X=X,grid=None,norm=True,metric="mse") 
     preds["preds_rfx"] = list(rfx["rf_pred"])
     preds["preds_rfx_reverted"] = list(rfx["rf_pred_revert"])    
     final_preds = pd.concat([final_preds, preds])
@@ -164,123 +163,16 @@ for c in countries:
     final_preds_linear=final_preds_linear.reset_index(drop=True)
     final_preds_linear.to_csv("data/preds_static_linear.csv")  
             
-# Merge cases 
-def boot(data, num_samples=1000, statistic=np.mean):
-    n = len(data)
-    bootstrap_estimates = np.empty(num_samples)
-    for i in range(num_samples):
-        bootstrap_sample = np.random.choice(data, size=n, replace=True)
-        bootstrap_estimates[i] = statistic(bootstrap_sample)
-    standard_error = np.std(bootstrap_estimates)
-    return standard_error
 
-# Nonlinear     
-final_rf_static = pd.read_csv("data/preds_static_nonlinear.csv",index_col=0)
-duplicate_rows = final_rf_static[final_rf_static.duplicated(subset=['dd', 'country'], keep=False)]
-for thres in [0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1]:
-    df_n_country_month = {}
-    countries=df.country.unique()
-    for i in countries:
-        ts = df["v2x_polyarchy"].loc[df["country"]==i][:int(0.7*len(df["v2x_polyarchy"].loc[df["country"]==i]))]
-        df_n_country_month[i] = ts.mean()
-    df_n_country_month = pd.DataFrame.from_dict(df_n_country_month, orient="index").reset_index()
-    df_n_country_month.rename(columns = {'index':'country', 0:'avg'}, inplace = True) 
-    country_keep = df_n_country_month.loc[df_n_country_month["avg"]<thres].country.unique()
-    
-    # Dynamic models
-    final_rf_dynamic = pd.read_csv("data/preds_dynamic_nonlinear.csv",index_col=0)
-    final_rf_dynamic = final_rf_dynamic[final_rf_dynamic['country'].isin(country_keep)]
-    duplicate_rows = final_rf_dynamic[final_rf_dynamic.duplicated(subset=['dd', 'country'], keep=False)]
-    
-    # Merge
-    df_nonlinear=pd.merge(final_rf_static,final_rf_dynamic[["dd","country",'preds_drf','preds_drf_reverted','preds_drfx','preds_drfx_reverted']],on=["dd","country"],how="right")
-    df_nonlinear=df_nonlinear.sort_values(by=["country","dd"])
-    df_nonlinear=df_nonlinear.reset_index(drop=True)
-    df_nonlinear.to_csv("data/df_nonlinear.csv")  
- 
-    df_nonlinear["mse_rf"]=((df_nonlinear["fatalities"] - df_nonlinear["preds_rf"]) ** 2) 
-    df_nonlinear["mse_rfx"]=((df_nonlinear["fatalities"] - df_nonlinear["preds_rfx"]) ** 2)
-    df_nonlinear["mse_drf"]=((df_nonlinear["fatalities"] - df_nonlinear["preds_drf"]) ** 2) 
-    df_nonlinear["mse_drfx"]=((df_nonlinear["fatalities"] - df_nonlinear["preds_drfx"]) ** 2) 
-    means = [df_nonlinear["mse_rf"].mean(),df_nonlinear["mse_rfx"].mean(),df_nonlinear["mse_drf"].mean(),df_nonlinear["mse_drfx"].mean()]
-    std_error = [boot(df_nonlinear["mse_rf"]),boot(df_nonlinear["mse_rfx"]),boot(df_nonlinear["mse_drf"]),boot(df_nonlinear["mse_drfx"])]
-    mean_mse = pd.DataFrame({'mean': means,'std': std_error})
-    means_imporve=[(df_nonlinear["mse_rf"]-df_nonlinear["mse_rfx"]).mean(),(df_nonlinear["mse_rf"]-df_nonlinear["mse_drf"]).mean(),(df_nonlinear["mse_rf"]-df_nonlinear["mse_drfx"]).mean()]
-    std_improve=[boot(df_nonlinear["mse_rf"]-df_nonlinear["mse_rfx"]),boot(df_nonlinear["mse_rf"]-df_nonlinear["mse_drf"]),boot(df_nonlinear["mse_rf"]-df_nonlinear["mse_drfx"])]
-    mean_mse_imporv = pd.DataFrame({'mean': means_imporve,'std': std_improve})
-    print(thres, means_imporve)
-    
-    # Plot
-    fig, ax1 = plt.subplots(figsize=(12,8))
-    marker_size = 150
-    linewidth = 3
-    fonts=25
-    ax1.scatter(mean_mse.index, mean_mse['mean'], color="black", marker='o', s=marker_size)
-    ax1.errorbar(mean_mse.index, mean_mse['mean'], yerr=mean_mse['std'], fmt='none', color="black", linewidth=linewidth)
-    ax2 = ax1.twinx()
-    ax2.grid(False)
-    ax2.scatter(mean_mse_imporv.index+1.2, mean_mse_imporv['mean'], color="gray", marker='o', s=marker_size)
-    ax2.errorbar(mean_mse_imporv.index+1.2, mean_mse_imporv['mean'], yerr=mean_mse_imporv['std'], fmt='none', color="gray", linewidth=linewidth)
-    ax2.hlines(0, 0, 3.5, linestyles='--', color="gray", linewidth=linewidth)
-    ax1.grid(False)
-    ax2.set_xticks([*range(4)],['RF','RFX','DRF','DRFX'],fontsize=18)
-    ax1.set_ylabel("Mean squared error (WMSE)",size=25)
-    ax2.set_ylabel("Improvement in MSE",size=25)
-    plt.title(f"thres {thres}")
-    plt.savefig(f"out/results_main_plot_{thres}_nonlin.jpeg",dpi=300,bbox_inches="tight")
+# Merge
+df_linear=pd.merge(final_preds_linear,final_dynamic_linear[["dd","country",'preds_dols','preds_dols_reverted','preds_dolsx','preds_dolsx_reverted']],on=["dd","country"])
+df_linear=df_linear.sort_values(by=["country","dd"])
+df_linear=df_linear.reset_index(drop=True)
+df_linear.to_csv("data/df_linear.csv")  
 
-# Linear     
-final_rf_static = pd.read_csv("data/preds_static_linear.csv",index_col=0)
-duplicate_rows = final_rf_static[final_rf_static.duplicated(subset=['dd', 'country'], keep=False)]
-for thres in [0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1]:
-    df_n_country_month = {}
-    countries=df.country.unique()
-    for i in countries:
-        ts = df["v2x_polyarchy"].loc[df["country"]==i][:int(0.7*len(df["v2x_polyarchy"].loc[df["country"]==i]))]
-        df_n_country_month[i] = ts.mean()
-    df_n_country_month = pd.DataFrame.from_dict(df_n_country_month, orient="index").reset_index()
-    df_n_country_month.rename(columns = {'index':'country', 0:'avg'}, inplace = True) 
-    country_keep = df_n_country_month.loc[df_n_country_month["avg"]<thres].country.unique()
-    
-    # Dynamic models
-    final_rf_dynamic = pd.read_csv("data/preds_dynamic_linear.csv",index_col=0)
-    final_rf_dynamic = final_rf_dynamic[final_rf_dynamic['country'].isin(country_keep)]
-    duplicate_rows = final_rf_dynamic[final_rf_dynamic.duplicated(subset=['dd', 'country'], keep=False)]
-    
-    # Merge
-    df_nonlinear=pd.merge(final_rf_static,final_rf_dynamic[["dd","country",'preds_dols','preds_dols_reverted','preds_dolsx','preds_dolsx_reverted']],on=["dd","country"],how="right")
-    df_nonlinear=df_nonlinear.sort_values(by=["country","dd"])
-    df_nonlinear=df_nonlinear.reset_index(drop=True)
-    df_nonlinear.to_csv("data/df_linear.csv")  
- 
-    df_nonlinear["mse_ols"]=((df_nonlinear["fatalities"] - df_nonlinear["preds_ols"]) ** 2) 
-    df_nonlinear["mse_olsx"]=((df_nonlinear["fatalities"] - df_nonlinear["preds_olsx"]) ** 2)
-    df_nonlinear["mse_dols"]=((df_nonlinear["fatalities"] - df_nonlinear["preds_dols"]) ** 2) 
-    df_nonlinear["mse_dolsx"]=((df_nonlinear["fatalities"] - df_nonlinear["preds_dolsx"]) ** 2) 
-    means = [df_nonlinear["mse_ols"].mean(),df_nonlinear["mse_olsx"].mean(),df_nonlinear["mse_dols"].mean(),df_nonlinear["mse_dolsx"].mean()]
-    std_error = [boot(df_nonlinear["mse_ols"]),boot(df_nonlinear["mse_olsx"]),boot(df_nonlinear["mse_dols"]),boot(df_nonlinear["mse_dolsx"])]
-    mean_mse = pd.DataFrame({'mean': means,'std': std_error})
-    means_imporve=[(df_nonlinear["mse_ols"]-df_nonlinear["mse_olsx"]).mean(),(df_nonlinear["mse_ols"]-df_nonlinear["mse_dols"]).mean(),(df_nonlinear["mse_ols"]-df_nonlinear["mse_dolsx"]).mean()]
-    std_improve=[boot(df_nonlinear["mse_ols"]-df_nonlinear["mse_olsx"]),boot(df_nonlinear["mse_ols"]-df_nonlinear["mse_dols"]),boot(df_nonlinear["mse_ols"]-df_nonlinear["mse_dolsx"])]
-    mean_mse_imporv = pd.DataFrame({'mean': means_imporve,'std': std_improve})
-    
-    # Plot
-    fig, ax1 = plt.subplots(figsize=(12,8))
-    marker_size = 150
-    linewidth = 3
-    fonts=25
-    ax1.scatter(mean_mse.index, mean_mse['mean'], color="black", marker='o', s=marker_size)
-    ax1.errorbar(mean_mse.index, mean_mse['mean'], yerr=mean_mse['std'], fmt='none', color="black", linewidth=linewidth)
-    ax2 = ax1.twinx()
-    ax2.grid(False)
-    ax2.scatter(mean_mse_imporv.index+1.2, mean_mse_imporv['mean'], color="gray", marker='o', s=marker_size)
-    ax2.errorbar(mean_mse_imporv.index+1.2, mean_mse_imporv['mean'], yerr=mean_mse_imporv['std'], fmt='none', color="gray", linewidth=linewidth)
-    ax2.hlines(0, 0, 3.5, linestyles='--', color="gray", linewidth=linewidth)
-    ax1.grid(False)
-    ax2.set_xticks([*range(4)],['OLS','OLSX','DOLS','DOLSX'],fontsize=18)
-    ax1.set_ylabel("Mean squared error (WMSE)",size=25)
-    ax2.set_ylabel("Improvement in MSE",size=25)
-    plt.title(f"thres {thres}")
-    plt.savefig(f"out/results_main_plot_{thres}_lin.jpeg",dpi=300,bbox_inches="tight")
+df_nonlinear=pd.merge(final_preds,final_dynamic[["dd","country",'preds_drf','preds_drf_reverted','preds_drfx','preds_drfx_reverted']],on=["dd","country"])
+df_nonlinear=df_nonlinear.sort_values(by=["country","dd"])
+df_nonlinear=df_nonlinear.reset_index(drop=True)
+df_nonlinear.to_csv("data/df_nonlinear.csv")  
 
 

@@ -93,8 +93,12 @@ final_dynamic_linear=pd.read_csv("data/preds_dynamic_linear_reg.csv",index_col=0
 with open("data/ols_shapes_reg.json", 'r') as json_file:
     shapes_rf = json.load(json_file)
 shapes_rf = dict(filter(lambda item: item[0].startswith("dols_"), shapes_rf.items()))
+
+# Optimize
 score_test=-1
 for k in [3,5,7]:
+    
+    # Get centroids
     df_cen=pd.DataFrame()
     for d in shapes_rf.keys():
         for i in range(len(shapes_rf[d][1])):
@@ -103,16 +107,21 @@ for k in [3,5,7]:
             lst=pd.concat([lst,add],axis=1)
             df_cen=pd.concat([df_cen,lst])
     
+    # Remove missing values
     arr=df_cen[[0,1,2,3,4,5,6,7,8,9,10,11]].values
     matrix_in = []
     for row in arr:
         row=row.astype(float)
         matrix_in.append(row[~np.isnan(row)])
+        
+    # Cluster
     matrix_d = dtw.distance_matrix_fast(matrix_in)    
     dist_matrix = squareform(matrix_d)
     link_matrix = linkage(dist_matrix, method='ward')
     clusters = fcluster(link_matrix, t=k, criterion='maxclust')
     df_cen["clusters_cen"]=clusters
+    
+    # Silhouette score
     score = silhouette_score(matrix_in, clusters,metric="dtw")
     print(score)
     
@@ -161,4 +170,6 @@ final_shapes_s['fatalities_log_lag8'] = final_shapes_s.groupby('gw_codes')['fata
 final_shapes_s['fatalities_log_lag9'] = final_shapes_s.groupby('gw_codes')['fatalities_log'].shift(9)
 final_shapes_s['fatalities_log_lag10'] = final_shapes_s.groupby('gw_codes')['fatalities_log'].shift(10)
 final_shapes_s.to_csv("data/final_shapes_s.csv")  
+
+
 
