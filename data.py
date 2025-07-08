@@ -6,6 +6,7 @@ import wbgapi as wb
                                 ### ACLED ###
                                 #############
 
+# Get ACLED data on the country-month level
 acled = pd.read_csv("data/acled_all_events.csv",low_memory=False,index_col=[0]) 
 df_s = acled.loc[(acled['event_type']=="Protests")].copy(deep=True)
 df_s["dd"] = pd.to_datetime(df_s['event_date'],format='%d %B %Y')
@@ -89,7 +90,7 @@ country_dates={156:[2018,2023], # China, 710
                364:[2016,2023], # Iran, 630
                682:[2015,2023], # Saudi Arabia, 670
                887:[2015,2023], # Yemen, 678
-               784:[2016,2023], # United Arab Emirates, 696
+               784:[2017,2023], # United Arab Emirates, 696
                376:[2016,2023], # Israel, 666
                400:[2016,2023], # Jordan, 663
                275:[2016,2023], # Palestine --> not in GW
@@ -262,11 +263,12 @@ country_dates={156:[2018,2023], # China, 710
                }
 
 
+# Make base df to merge events
 agg_month = agg_month.sort_values(by=["country","year","dd"])
 base=pd.DataFrame()
 countries=list(country_dates.keys())
 
-# Loop through every country-month
+# Loop through every country-month 
 for i in range(0, len(countries)):
     date = list(pd.date_range(start=f"{country_dates[countries[i]][0]}-01",end=f"{country_dates[countries[i]][1]}-12",freq="MS"))
     date = pd.to_datetime(date, format='%Y-%m').to_period('M')
@@ -276,6 +278,7 @@ for i in range(0, len(countries)):
         s = pd.DataFrame(data=s,index=[0])
         base = pd.concat([base,s])  
 
+# Merge
 base = base.sort_values(by=["iso","dd"])
 base.reset_index(drop=True,inplace=True)
 base["dd"]=base["dd"].astype(str)
@@ -286,6 +289,7 @@ agg_month=agg_month.fillna(0)
 add_countries = acled[['country', 'iso']].drop_duplicates()
 agg_month=pd.merge(agg_month, add_countries,on=["iso"],how="left")
 
+# Manually fix countries which are in ACLED but not it data downloaded
 agg_month.loc[agg_month["iso"]==86,"country"]="British Indian Ocean Territory"
 agg_month.loc[agg_month["iso"]==166,"country"]="Cocos (Keeling) Islands"
 agg_month.loc[agg_month["iso"]==239,"country"]="South Georgia and the South Sandwich Islands"
@@ -309,276 +313,17 @@ agg_month.loc[agg_month["iso"]==585,"region"]="Oceania"
 agg_month.loc[agg_month["iso"]==612,"region"]="Oceania"
 agg_month.loc[agg_month["iso"]==798,"region"]="Oceania"
 
-# Remove antacrtica
-agg_month=agg_month.loc[agg_month["country"]!="Antarctica"]
-
-# Merge countries which are not independent 
-
-# "South Georgia and the South Sandwich Islands" -->  United Kingdom
-agg_month[["dd","n_protest_events"]].loc[agg_month["country"]=="South Georgia and the South Sandwich Islands"].max() # Only zeros
-agg_month=agg_month.loc[agg_month["country"]!="South Georgia and the South Sandwich Islands"]
-
-# "US Outlying Minor Islands" -->  United States
-agg_month[["dd","n_protest_events"]].loc[agg_month["country"]=="United States Minor Outlying Islands"]
-agg_month=agg_month.loc[agg_month["country"]!="United States Minor Outlying Islands"] # Only zeros
-
-# "Cocos (Keeling) Islands" -->  Australia
-agg_month[["dd","n_protest_events"]].loc[agg_month["country"]=="Cocos (Keeling) Islands"]
-agg_month=agg_month.loc[agg_month["country"]!="Cocos (Keeling) Islands"] # Only zeros
-
-# "Heard Island and McDonald Islands" -->  Australia
-agg_month[["dd","n_protest_events"]].loc[agg_month["country"]=="Heard Island and McDonald Islands"]
-agg_month=agg_month.loc[agg_month["country"]!="Heard Island and McDonald Islands"] # Only zeros
-
-# "Pitcairn" --> United Kingdom
-agg_month[["dd","n_protest_events"]].loc[agg_month["country"]=="Pitcairn"]
-agg_month=agg_month.loc[agg_month["country"]!="Pitcairn"] # Only zeros
-
-# "Tokelau" --> New Zealand
-agg_month[["dd","n_protest_events"]].loc[agg_month["country"]=="Tokelau"]
-agg_month=agg_month.loc[agg_month["country"]!="Tokelau"] # Only zeros
-
-# "Niue" --> New Zealand
-agg_month[["dd","n_protest_events"]].loc[agg_month["country"]=="Niue"]
-agg_month=agg_month.loc[agg_month["country"]!="Niue"] # Only zeros
-
-# "Norfolk Island" --> Australia
-agg_month[["dd","n_protest_events"]].loc[agg_month["country"]=="Norfolk Island"]
-agg_month=agg_month.loc[agg_month["country"]!="Norfolk Island"] # Only zeros
-
-# "Bermuda" --> United Kingdom 
-agg_month[["dd","n_protest_events"]].loc[agg_month["country"]=="Bermuda"]
-agg_month[["dd","n_protest_events"]].loc[agg_month["country"]=="United Kingdom"]
-agg_month["n_protest_events"].loc[(agg_month["country"]=="United Kingdom") & (agg_month["dd"]>="2021-01")]=agg_month["n_protest_events"].loc[agg_month["country"]=="Bermuda"].values+agg_month["n_protest_events"].loc[(agg_month["country"]=="United Kingdom") & (agg_month["dd"]>="2021-01")].values
-agg_month=agg_month.loc[agg_month["country"]!="Bermuda"]
-
-# "Puerto Rico" --> United States 
-agg_month[["dd","n_protest_events"]].loc[agg_month["country"]=="Puerto Rico"]
-agg_month[["dd","n_protest_events"]].loc[agg_month["country"]=="United States"]
-agg_month["n_protest_events"].loc[(agg_month["country"]=="United States")]=agg_month["n_protest_events"].loc[(agg_month["country"]=="Puerto Rico") & (agg_month["dd"]>="2020-01") ].values+agg_month["n_protest_events"].loc[(agg_month["country"]=="United States")].values
-agg_month=agg_month.loc[agg_month["country"]!="Puerto Rico"]
-
-# "Falkland Islands" --> France 
-agg_month[["dd","n_protest_events"]].loc[agg_month["country"]=="Falkland Islands"].max()
-agg_month=agg_month.loc[agg_month["country"]!="Falkland Islands"] # Only zeros
-
-# "Reunion" --> France 
-agg_month[["dd","n_protest_events"]].loc[agg_month["country"]=="Reunion"]
-agg_month[["dd","n_protest_events"]].loc[agg_month["country"]=="France"]
-agg_month["n_protest_events"].loc[(agg_month["country"]=="France")]=agg_month["n_protest_events"].loc[(agg_month["country"]=="Reunion")].values+agg_month["n_protest_events"].loc[(agg_month["country"]=="France")].values
-agg_month=agg_month.loc[agg_month["country"]!="Reunion"]
-
-# "British Indian Ocean Territory" --> United Kingdom 
-agg_month[["dd","n_protest_events"]].loc[agg_month["country"]=="British Indian Ocean Territory"].max()
-agg_month=agg_month.loc[agg_month["country"]!="British Indian Ocean Territory"] # Only zeros
-
-# "Palestine" --> Israel 
+# Assign "Palestine" --> Israel because this is a critical case
 agg_month[["dd","n_protest_events"]].loc[agg_month["country"]=="Palestine"]
 agg_month[["dd","n_protest_events"]].loc[agg_month["country"]=="Israel"]
 agg_month["n_protest_events"].loc[(agg_month["country"]=="Israel")]=agg_month["n_protest_events"].loc[(agg_month["country"]=="Palestine")].values+agg_month["n_protest_events"].loc[(agg_month["country"]=="Israel")].values
-agg_month=agg_month.loc[agg_month["country"]!="Palestine"]
+agg_month["n_protest_events"].loc[(agg_month["country"]=="Israel")]
 
-# "Vatican City" --> Italy 
-agg_month[["dd","n_protest_events"]].loc[agg_month["country"]=="Vatican City"]
-agg_month[["dd","n_protest_events"]].loc[agg_month["country"]=="Italy"]
-agg_month["n_protest_events"].loc[(agg_month["country"]=="Italy")]=agg_month["n_protest_events"].loc[(agg_month["country"]=="Vatican City")].values+agg_month["n_protest_events"].loc[(agg_month["country"]=="Italy")].values
-agg_month=agg_month.loc[agg_month["country"]!="Vatican City"]
-
-# "American Samoa"--> United States
-agg_month[["dd","n_protest_events"]].loc[agg_month["country"]=="American Samoa"]
-agg_month[["dd","n_protest_events"]].loc[agg_month["country"]=="United States"]
-agg_month["n_protest_events"].loc[(agg_month["country"]=="United States") & (agg_month["dd"]>="2021-01")]=agg_month["n_protest_events"].loc[agg_month["country"]=="American Samoa"].values+agg_month["n_protest_events"].loc[(agg_month["country"]=="United States") & (agg_month["dd"]>="2021-01")].values
-agg_month=agg_month.loc[agg_month["country"]!="American Samoa"]
-
-# "Anguilla"--> United Kingdom
-agg_month[["dd","n_protest_events"]].loc[agg_month["country"]=="Anguilla"]
-agg_month[["dd","n_protest_events"]].loc[agg_month["country"]=="United Kingdom"]
-agg_month["n_protest_events"].loc[(agg_month["country"]=="United Kingdom")]=agg_month["n_protest_events"].loc[(agg_month["country"]=="Anguilla")& (agg_month["dd"]>="2020-01")].values+agg_month["n_protest_events"].loc[(agg_month["country"]=="United Kingdom")].values
-agg_month=agg_month.loc[agg_month["country"]!="Anguilla"]
-
-# "Aruba"--> Netherlands
-agg_month[["dd","n_protest_events"]].loc[agg_month["country"]=="Aruba"]
-agg_month[["dd","n_protest_events"]].loc[agg_month["country"]=="Netherlands"]
-agg_month["n_protest_events"].loc[(agg_month["country"]=="Netherlands")]=agg_month["n_protest_events"].loc[(agg_month["country"]=="Aruba")&(agg_month["dd"]>="2020-01")].values+agg_month["n_protest_events"].loc[(agg_month["country"]=="Netherlands")].values
-agg_month=agg_month.loc[agg_month["country"]!="Aruba"]
-
-# "Cook Islands" --> New Zealand
-agg_month[["dd","n_protest_events"]].loc[agg_month["country"]=="Cook Islands"]
-agg_month[["dd","n_protest_events"]].loc[agg_month["country"]=="New Zealand"]
-agg_month["n_protest_events"].loc[(agg_month["country"]=="New Zealand")]=agg_month["n_protest_events"].loc[(agg_month["country"]=="Cook Islands")&(agg_month["dd"]>="2020-01")].values+agg_month["n_protest_events"].loc[(agg_month["country"]=="New Zealand")].values
-agg_month=agg_month.loc[agg_month["country"]!="Cook Islands"]
-
-# "Bailiwick of Guernsey" --> United Kingdom
-agg_month[["dd","n_protest_events"]].loc[agg_month["country"]=="Bailiwick of Guernsey"]
-agg_month[["dd","n_protest_events"]].loc[agg_month["country"]=="United Kingdom"]
-agg_month["n_protest_events"].loc[(agg_month["country"]=="United Kingdom")]=agg_month["n_protest_events"].loc[agg_month["country"]=="Bailiwick of Guernsey"].values+agg_month["n_protest_events"].loc[(agg_month["country"]=="United Kingdom")].values
-agg_month=agg_month.loc[agg_month["country"]!="Bailiwick of Guernsey"]
-
-# "Bailiwick of Jersey" --> United Kingdom
-agg_month[["dd","n_protest_events"]].loc[agg_month["country"]=="Bailiwick of Jersey"]
-agg_month[["dd","n_protest_events"]].loc[agg_month["country"]=="United Kingdom"]
-agg_month["n_protest_events"].loc[(agg_month["country"]=="United Kingdom")]=agg_month["n_protest_events"].loc[agg_month["country"]=="Bailiwick of Jersey"].values+agg_month["n_protest_events"].loc[(agg_month["country"]=="United Kingdom")].values
-agg_month=agg_month.loc[agg_month["country"]!="Bailiwick of Jersey"]
-
-# "British Virgin Islands" --> United Kingdom
-agg_month[["dd","n_protest_events"]].loc[agg_month["country"]=="British Virgin Islands"]
-agg_month[["dd","n_protest_events"]].loc[agg_month["country"]=="United Kingdom"]
-agg_month["n_protest_events"].loc[(agg_month["country"]=="United Kingdom")]=agg_month["n_protest_events"].loc[(agg_month["country"]=="British Virgin Islands")&(agg_month["dd"]>="2020-01")].values+agg_month["n_protest_events"].loc[(agg_month["country"]=="United Kingdom")].values
-agg_month=agg_month.loc[agg_month["country"]!="British Virgin Islands"]
-
-# "Caribbean Netherlands" --> Netherlands
-agg_month[["dd","n_protest_events"]].loc[agg_month["country"]=="Caribbean Netherlands"]
-agg_month[["dd","n_protest_events"]].loc[agg_month["country"]=="Netherlands"]
-agg_month["n_protest_events"].loc[(agg_month["country"]=="Netherlands")]=agg_month["n_protest_events"].loc[(agg_month["country"]=="Caribbean Netherlands")& (agg_month["dd"]>="2020-01")].values+agg_month["n_protest_events"].loc[(agg_month["country"]=="Netherlands")].values
-agg_month=agg_month.loc[agg_month["country"]!="Caribbean Netherlands"]
-
-# "Cayman Islands" --> United Kingdom
-agg_month[["dd","n_protest_events"]].loc[agg_month["country"]=="Cayman Islands"]
-agg_month[["dd","n_protest_events"]].loc[agg_month["country"]=="United Kingdom"]
-agg_month["n_protest_events"].loc[(agg_month["country"]=="United Kingdom")]=agg_month["n_protest_events"].loc[(agg_month["country"]=="Cayman Islands")& (agg_month["dd"]>="2020-01")].values+agg_month["n_protest_events"].loc[(agg_month["country"]=="United Kingdom")].values
-agg_month=agg_month.loc[agg_month["country"]!="Cayman Islands"]
-
-# "Christmas Island" --> Australia
-agg_month[["dd","n_protest_events"]].loc[agg_month["country"]=="Christmas Island"]
-agg_month[["dd","n_protest_events"]].loc[agg_month["country"]=="Australia"]
-agg_month["n_protest_events"].loc[(agg_month["country"]=="Australia")]=agg_month["n_protest_events"].loc[(agg_month["country"]=="Christmas Island")].values+agg_month["n_protest_events"].loc[(agg_month["country"]=="Australia")].values
-agg_month=agg_month.loc[agg_month["country"]!="Christmas Island"]
-
-# "Curacao" --> Netherlands
-agg_month[["dd","n_protest_events"]].loc[agg_month["country"]=="Curacao"]
-agg_month[["dd","n_protest_events"]].loc[agg_month["country"]=="Netherlands"]
-agg_month["n_protest_events"].loc[(agg_month["country"]=="Netherlands")]=agg_month["n_protest_events"].loc[(agg_month["country"]=="Curacao")& (agg_month["dd"]>="2020-01")].values+agg_month["n_protest_events"].loc[(agg_month["country"]=="Netherlands")].values
-agg_month=agg_month.loc[agg_month["country"]!="Curacao"]
-
-# "Faroe Islands" --> Denmark
-agg_month[["dd","n_protest_events"]].loc[agg_month["country"]=="Faroe Islands"]
-agg_month[["dd","n_protest_events"]].loc[agg_month["country"]=="Denmark"]
-agg_month["n_protest_events"].loc[(agg_month["country"]=="Denmark")]=agg_month["n_protest_events"].loc[(agg_month["country"]=="Faroe Islands")].values+agg_month["n_protest_events"].loc[(agg_month["country"]=="Denmark")].values
-agg_month=agg_month.loc[agg_month["country"]!="Faroe Islands"]
-
-# "French Guiana" --> France
-agg_month[["dd","n_protest_events"]].loc[agg_month["country"]=="French Guiana"]
-agg_month[["dd","n_protest_events"]].loc[agg_month["country"]=="France"]
-agg_month["n_protest_events"].loc[(agg_month["country"]=="France")]=agg_month["n_protest_events"].loc[(agg_month["country"]=="French Guiana")& (agg_month["dd"]>="2020-01")].values+agg_month["n_protest_events"].loc[(agg_month["country"]=="France")].values
-agg_month=agg_month.loc[agg_month["country"]!="French Guiana"]
-
-# "French Polynesia" --> France
-agg_month[["dd","n_protest_events"]].loc[agg_month["country"]=="French Polynesia"]
-agg_month[["dd","n_protest_events"]].loc[agg_month["country"]=="France"]
-agg_month["n_protest_events"].loc[(agg_month["country"]=="France")& (agg_month["dd"]>="2021-01")]=agg_month["n_protest_events"].loc[(agg_month["country"]=="French Polynesia")].values+agg_month["n_protest_events"].loc[(agg_month["country"]=="France")& (agg_month["dd"]>="2021-01")].values
-agg_month=agg_month.loc[agg_month["country"]!="French Polynesia"]
-
-# "Gibraltar" --> United Kingdom
-agg_month[["dd","n_protest_events"]].loc[agg_month["country"]=="Gibraltar"]
-agg_month[["dd","n_protest_events"]].loc[agg_month["country"]=="United Kingdom"]
-agg_month["n_protest_events"].loc[(agg_month["country"]=="United Kingdom")]=agg_month["n_protest_events"].loc[(agg_month["country"]=="Gibraltar")].values+agg_month["n_protest_events"].loc[(agg_month["country"]=="United Kingdom")].values
-agg_month=agg_month.loc[agg_month["country"]!="Gibraltar"]
-
-# "Greenland" --> Denmark
-agg_month[["dd","n_protest_events"]].loc[agg_month["country"]=="Greenland"]
-agg_month[["dd","n_protest_events"]].loc[agg_month["country"]=="Denmark"]
-agg_month["n_protest_events"].loc[(agg_month["country"]=="Denmark")]=agg_month["n_protest_events"].loc[(agg_month["country"]=="Greenland")].values+agg_month["n_protest_events"].loc[(agg_month["country"]=="Denmark")].values
-agg_month=agg_month.loc[agg_month["country"]!="Greenland"]
-
-# "Guadeloupe" --> France
-agg_month[["dd","n_protest_events"]].loc[agg_month["country"]=="Guadeloupe"]
-agg_month[["dd","n_protest_events"]].loc[agg_month["country"]=="France"]
-agg_month["n_protest_events"].loc[(agg_month["country"]=="France")]=agg_month["n_protest_events"].loc[(agg_month["country"]=="Guadeloupe")& (agg_month["dd"]>="2020-01")].values+agg_month["n_protest_events"].loc[(agg_month["country"]=="France")].values
-agg_month=agg_month.loc[agg_month["country"]!="Guadeloupe"]
-
-# "Guam" --> United States
-agg_month[["dd","n_protest_events"]].loc[agg_month["country"]=="Guam"]
-agg_month[["dd","n_protest_events"]].loc[agg_month["country"]=="United States"]
-agg_month["n_protest_events"].loc[(agg_month["country"]=="United States") & (agg_month["dd"]>="2021-01")]=agg_month["n_protest_events"].loc[agg_month["country"]=="Guam"].values+agg_month["n_protest_events"].loc[(agg_month["country"]=="United States") & (agg_month["dd"]>="2021-01")].values
-agg_month=agg_month.loc[agg_month["country"]!="Guam"]
-
-# "Isle of Man" --> United Kingdom
-agg_month[["dd","n_protest_events"]].loc[agg_month["country"]=="Isle of Man"]
-agg_month[["dd","n_protest_events"]].loc[agg_month["country"]=="United Kingdom"]
-agg_month["n_protest_events"].loc[(agg_month["country"]=="United Kingdom")]=agg_month["n_protest_events"].loc[(agg_month["country"]=="Isle of Man")].values+agg_month["n_protest_events"].loc[(agg_month["country"]=="United Kingdom")].values
-agg_month=agg_month.loc[agg_month["country"]!="Isle of Man"]
-
-# "Martinique" --> France
-agg_month[["dd","n_protest_events"]].loc[agg_month["country"]=="Martinique"]
-agg_month[["dd","n_protest_events"]].loc[agg_month["country"]=="France"]
-agg_month["n_protest_events"].loc[(agg_month["country"]=="France")]=agg_month["n_protest_events"].loc[(agg_month["country"]=="Martinique")& (agg_month["dd"]>="2020-01")].values+agg_month["n_protest_events"].loc[(agg_month["country"]=="France")].values
-agg_month=agg_month.loc[agg_month["country"]!="Martinique"]
-
-# "Mayotte" --> France
-agg_month[["dd","n_protest_events"]].loc[agg_month["country"]=="Mayotte"]
-agg_month[["dd","n_protest_events"]].loc[agg_month["country"]=="France"]
-agg_month["n_protest_events"].loc[(agg_month["country"]=="France")]=agg_month["n_protest_events"].loc[(agg_month["country"]=="Mayotte")].values+agg_month["n_protest_events"].loc[(agg_month["country"]=="France")].values
-agg_month=agg_month.loc[agg_month["country"]!="Mayotte"]
-
-# "Montserrat" --> United Kingdom
-agg_month[["dd","n_protest_events"]].loc[agg_month["country"]=="Montserrat"]
-agg_month[["dd","n_protest_events"]].loc[agg_month["country"]=="United Kingdom"]
-agg_month["n_protest_events"].loc[(agg_month["country"]=="United Kingdom")]=agg_month["n_protest_events"].loc[(agg_month["country"]=="Montserrat")& (agg_month["dd"]>="2020-01")].values+agg_month["n_protest_events"].loc[(agg_month["country"]=="United Kingdom")].values
-agg_month=agg_month.loc[agg_month["country"]!="Montserrat"]
-
-# "New Caledonia" --> France
-agg_month[["dd","n_protest_events"]].loc[agg_month["country"]=="New Caledonia"]
-agg_month[["dd","n_protest_events"]].loc[agg_month["country"]=="France"]
-agg_month["n_protest_events"].loc[(agg_month["country"]=="France")& (agg_month["dd"]>="2021-01")]=agg_month["n_protest_events"].loc[(agg_month["country"]=="New Caledonia")].values+agg_month["n_protest_events"].loc[(agg_month["country"]=="France")& (agg_month["dd"]>="2021-01")].values
-agg_month=agg_month.loc[agg_month["country"]!="New Caledonia"]
-
-# "Northern Mariana Islands" --> United States
-agg_month[["dd","n_protest_events"]].loc[agg_month["country"]=="Northern Mariana Islands"]
-agg_month[["dd","n_protest_events"]].loc[agg_month["country"]=="United States"]
-agg_month["n_protest_events"].loc[(agg_month["country"]=="United States") & (agg_month["dd"]>="2021-01")]=agg_month["n_protest_events"].loc[agg_month["country"]=="Northern Mariana Islands"].values+agg_month["n_protest_events"].loc[(agg_month["country"]=="United States") & (agg_month["dd"]>="2021-01")].values
-agg_month=agg_month.loc[agg_month["country"]!="Northern Mariana Islands"]
-
-# "Saint-Barthelemy" --> France
-agg_month[["dd","n_protest_events"]].loc[agg_month["country"]=="Saint-Barthelemy"]
-agg_month[["dd","n_protest_events"]].loc[agg_month["country"]=="France"]
-agg_month["n_protest_events"].loc[agg_month["country"]=="France"]=agg_month["n_protest_events"].loc[(agg_month["country"]=="Saint-Barthelemy")& (agg_month["dd"]>="2020-01")].values+agg_month["n_protest_events"].loc[(agg_month["country"]=="France")].values
-agg_month=agg_month.loc[agg_month["country"]!="Saint-Barthelemy"]
-
-# "Saint Helena" --> United Kingdom
-agg_month[["dd","n_protest_events"]].loc[agg_month["country"]=="Saint Helena, Ascension and Tristan da Cunha"]
-agg_month[["dd","n_protest_events"]].loc[agg_month["country"]=="United Kingdom"]
-agg_month["n_protest_events"].loc[(agg_month["country"]=="United Kingdom")]=agg_month["n_protest_events"].loc[(agg_month["country"]=="Saint Helena, Ascension and Tristan da Cunha")& (agg_month["dd"]>="2020-01")].values+agg_month["n_protest_events"].loc[(agg_month["country"]=="United Kingdom")].values
-agg_month=agg_month.loc[agg_month["country"]!="Saint Helena, Ascension and Tristan da Cunha"]
-
-# "Saint Pierre and Miquelon" --> United States
-agg_month[["dd","n_protest_events"]].loc[agg_month["country"]=="Saint Pierre and Miquelon"]
-agg_month[["dd","n_protest_events"]].loc[agg_month["country"]=="United States"]
-agg_month["n_protest_events"].loc[(agg_month["country"]=="United States") & (agg_month["dd"]>="2021-01")]=agg_month["n_protest_events"].loc[agg_month["country"]=="Saint Pierre and Miquelon"].values+agg_month["n_protest_events"].loc[(agg_month["country"]=="United States") & (agg_month["dd"]>="2021-01")].values
-agg_month=agg_month.loc[agg_month["country"]!="Saint Pierre and Miquelon"]
-
-# "Saint-Martin" --> France
-agg_month[["dd","n_protest_events"]].loc[agg_month["country"]=="Saint-Martin"]
-agg_month[["dd","n_protest_events"]].loc[agg_month["country"]=="France"]
-agg_month["n_protest_events"].loc[(agg_month["country"]=="France")]=agg_month["n_protest_events"].loc[(agg_month["country"]=="Saint-Martin")& (agg_month["dd"]>="2020-01")].values+agg_month["n_protest_events"].loc[(agg_month["country"]=="France")].values
-agg_month=agg_month.loc[agg_month["country"]!="Saint-Martin"]
-
-# "Sint Maarten" --> Netherlands
-agg_month[["dd","n_protest_events"]].loc[agg_month["country"]=="Sint Maarten"]
-agg_month[["dd","n_protest_events"]].loc[agg_month["country"]=="Netherlands"]
-agg_month["n_protest_events"].loc[(agg_month["country"]=="Netherlands")]=agg_month["n_protest_events"].loc[(agg_month["country"]=="Sint Maarten")& (agg_month["dd"]>="2020-01")].values+agg_month["n_protest_events"].loc[(agg_month["country"]=="Netherlands")].values
-agg_month=agg_month.loc[agg_month["country"]!="Sint Maarten"]
-
-# "Turks and Caicos Islands" --> United Kingdom
-agg_month[["dd","n_protest_events"]].loc[agg_month["country"]=="Turks and Caicos Islands"]
-agg_month[["dd","n_protest_events"]].loc[agg_month["country"]=="United States"]
-agg_month["n_protest_events"].loc[(agg_month["country"]=="United States")]=agg_month["n_protest_events"].loc[(agg_month["country"]=="Turks and Caicos Islands")& (agg_month["dd"]>="2020-01")].values+agg_month["n_protest_events"].loc[(agg_month["country"]=="United States")].values
-agg_month=agg_month.loc[agg_month["country"]!="Turks and Caicos Islands"]
-
-# "Virgin Islands, U.S." --> United States
-agg_month[["dd","n_protest_events"]].loc[agg_month["country"]=="Virgin Islands, U.S."]
-agg_month[["dd","n_protest_events"]].loc[agg_month["country"]=="United States"]
-agg_month["n_protest_events"].loc[(agg_month["country"]=="United States")]=agg_month["n_protest_events"].loc[(agg_month["country"]=="Virgin Islands, U.S.")& (agg_month["dd"]>="2020-01")].values+agg_month["n_protest_events"].loc[(agg_month["country"]=="United States")].values
-agg_month=agg_month.loc[agg_month["country"]!="Virgin Islands, U.S."]
-
-# "Wallis and Futuna" --> France
-agg_month[["dd","n_protest_events"]].loc[agg_month["country"]=="Wallis and Futuna"]
-agg_month[["dd","n_protest_events"]].loc[agg_month["country"]=="France"]
-agg_month["n_protest_events"].loc[(agg_month["country"]=="France")& (agg_month["dd"]>="2021-01")]=agg_month["n_protest_events"].loc[(agg_month["country"]=="Wallis and Futuna")].values+agg_month["n_protest_events"].loc[(agg_month["country"]=="France")& (agg_month["dd"]>="2021-01")].values
-agg_month=agg_month.loc[agg_month["country"]!="Wallis and Futuna"]
+# The other territories not included in GW will be dropped. 
 
 agg_month = agg_month.sort_values(by=["country","dd"])
 
-# Country codes 
+# Add GW country codes 
 agg_month.country.unique()
 agg_month["gw_codes"]=999999
 agg_month.loc[agg_month["country"]=="Afghanistan","gw_codes"]=700
@@ -801,19 +546,71 @@ agg_month.loc[agg_month["country"]=="Zimbabwe","gw_codes"]=552
 
 agg_month.loc[agg_month["country"]=="eSwatini","gw_codes"]=572
 
-agg_month['year'] = agg_month['dd'].str[:4].astype(int)
+# The following territories are removed
+# American Samoa
+# Anguilla
+# Antarctica
+# Aruba
+# Bailiwick of Guernsey
+# Bailiwick of Jersey
+# Bermuda
+# British Indian Ocean Territory
+# British Virgin Islands
+# Caribbean Netherlands
+# Cayman Islands
+# Christmas Island
+# Cocos (Keeling) Islands
+# Cook Islands
+# Curacao
+# Falkland Islands
+# Faroe Islands
+# French Guiana
+# French Polynesia
+# Gibraltar
+# Greenland
+# Guadeloupe
+# Guam
+# Heard Island and McDonald Islands
+# Isle of Man
+# Martinique
+# Mayotte
+# Montserrat
+# New Caledonia
+# Niue
+# Norfolk Island
+# Northern Mariana Islands
+# Palestine
+# Pitcairn
+# Puerto Rico
+# Reunion
+# Saint Helena, Ascension and Tristan da Cunha
+# Saint Pierre and Miquelon
+# Saint-Barthelemy
+# Saint-Martin
+# Sint Maarten
+# South Georgia and the South Sandwich Islands
+# Tokelau
+# Turks and Caicos Islands
+# United States Minor Outlying Islands
+# Vatican City
+# Virgin Islands, U.S.
+# Wallis and Futuna
 
+agg_month=agg_month.loc[agg_month["gw_codes"]<999999]
+agg_month['year'] = agg_month['dd'].str[:4].astype(int)
 df=agg_month[["dd","year","gw_codes","country","n_protest_events","region"]]
 
                                 ############
                                 ### UCDP ###
                                 ############
                                 
-ucdp = pd.read_csv("https://ucdp.uu.se/downloads/ged/ged231-csv.zip",low_memory=False)
-ucdp2 = pd.read_csv("https://ucdp.uu.se/downloads/candidateged/GEDEvent_v23_01_23_12.csv",low_memory=False)
-ucdp=pd.concat([ucdp,ucdp2],axis=0,ignore_index=True)
+ucdp = pd.read_csv("https://ucdp.uu.se/downloads/ged/ged241-csv.zip",low_memory=False)
+ucdp.to_csv("data/ucdp.csv") 
 
+# Only keep civil conflict
 ucdp_s = ucdp[(ucdp["type_of_violence"]==1)].copy(deep=True)
+u = ucdp_s[["dyad_name"]].drop_duplicates().reset_index(drop=True)
+
 ucdp_ss = ucdp_s.loc[(ucdp_s["dyad_name"] != "Government of Afghanistan - Government of United Kingdom, Government of United States of America") &
                     (ucdp_s["dyad_name"] != "Government of Cambodia (Kampuchea) - Government of Thailand") &
                     (ucdp_s["dyad_name"] != "Government of Cameroon - Government of Nigeria") &
@@ -830,8 +627,11 @@ ucdp_ss = ucdp_s.loc[(ucdp_s["dyad_name"] != "Government of Afghanistan - Govern
                     (ucdp_s["dyad_name"] != "Government of Russia (Soviet Union) - Government of Ukraine") &                   
                     (ucdp_s["dyad_name"] != "Government of South Sudan - Government of Sudan") ].copy(deep=True)
 
+# Add dates
 ucdp_ss["dd_date_start"] = pd.to_datetime(ucdp_ss['date_start'],format='%Y-%m-%d %H:%M:%S.000')
 ucdp_ss["dd_date_end"] = pd.to_datetime(ucdp_ss['date_end'],format='%Y-%m-%d %H:%M:%S.000')
+
+# Only store month
 ucdp_ss["month_date_start"] = ucdp_ss["dd_date_start"].dt.strftime('%m')
 ucdp_ss["month_date_end"] = ucdp_ss["dd_date_end"].dt.strftime('%m')
 ucdp_date = ucdp_ss[["year","dd_date_start","dd_date_end","active_year","country","country_id","date_prec","best","deaths_a","deaths_b","deaths_civilians","deaths_unknown","month_date_start","month_date_end"]].copy(deep=True)
@@ -842,14 +642,18 @@ ucdp_date.reset_index(drop=True, inplace=True)
 ucdp_final = ucdp_date.copy()
 for i in range(0,len(ucdp_date)):
     if ucdp_date["month_date_start"].loc[i]!=ucdp_date["month_date_end"].loc[i]:
-        ucdp_final = ucdp_final.drop(index=i, axis=0)        
+        ucdp_final = ucdp_final.drop(index=i, axis=0)      
+        
+# Generate dd variable        
 ucdp_final['dd'] = pd.to_datetime(ucdp_final['dd_date_start'],format='%Y-%m').dt.to_period('M')
 
-# Aggregate  
+# Aggregate and merge
 fat = pd.DataFrame(ucdp_final.groupby(["dd","country_id"])['best'].sum())
 ucdp_fat = fat.reset_index()
 ucdp_fat.columns=["dd","gw_codes","fatalities"]
 ucdp_fat["dd"]=ucdp_fat["dd"].astype(str)
+
+# Merge with ACLED
 df=pd.merge(df,ucdp_fat,on=["dd","gw_codes"],how="left")
 df['fatalities'] = df['fatalities'].fillna(0)
 
@@ -862,6 +666,7 @@ vdem_s=vdem[["year","country_name","v2x_polyarchy","v2x_libdem","v2x_partipdem",
 vdem_s.columns=["year","country","v2x_polyarchy","v2x_libdem","v2x_partipdem","v2x_delibdem","v2x_egaldem","v2x_neopat","v2x_civlib","v2x_clphy","v2x_corr","v2x_rule"]                           
 vdem_s=vdem_s.sort_values(by=["country","year"])
 
+# Add country codes
 vdem_s["gw_codes"]=999999
 vdem_s.loc[vdem_s["country"]=="Afghanistan","gw_codes"]=700
 vdem_s.loc[vdem_s["country"]=="Albania","gw_codes"]=339
@@ -1067,23 +872,70 @@ vdem_s.loc[vdem_s["country"]=="Zimbabwe","gw_codes"]=552
 
 vdem_s.loc[vdem_s["country"]=="Eswatini","gw_codes"]=572
 
+# The following countries in vdem are exlucded: 
+# Baden
+# Bavaria
+# Brunswick
+# German Democratic Republic 
+# Hamburg
+# Hanover
+# Hesse-Darmstadt
+# Hesse-Kassel
+# Hong Kong
+# Mecklenburg Schwerin
+# Modena
+# Nassau
+# Oldenburg
+# Palestine/British Mandate
+# Palestine/Gaza 
+# Palestine/West Bank 
+# Papal States
+# Parma
+# Piedmont-Sardinia
+# Republic of Vietnam
+# Saxe-Weimar-Eisenach 
+# Saxony
+# Somaliland
+# South Yemen 
+# Tuscany
+# Two Sicilies
+# Würtemberg
+# Zanzibar
+
 vdem_s=vdem_s.loc[vdem_s["gw_codes"]!=999999]
 
-# Drop countries which are missing 
+# Merge on country level
 base=df[["year","country","gw_codes"]].drop_duplicates(subset=["year","country"]).reset_index(drop=True)
 base=pd.merge(left=base,right=vdem_s[["year","gw_codes","v2x_polyarchy","v2x_libdem","v2x_partipdem","v2x_delibdem","v2x_egaldem","v2x_neopat","v2x_civlib","v2x_clphy","v2x_corr","v2x_rule"]],on=["year","gw_codes"],how="left")
 base[base['v2x_libdem'].isna()].country.unique()
 
-missing=['Andorra', 'Antigua and Barbuda', 'Bahamas', 'Belize', 'Brunei',
-       'Dominica', 'Grenada', 'Kiribati', 'Liechtenstein',
-       'Marshall Islands', 'Micronesia', 'Monaco', 'Nauru', 'Palau',
-       'Saint Kitts and Nevis', 'Saint Lucia',
-       'Saint Vincent and the Grenadines', 'Samoa', 'San Marino', 'Tonga',
-       'Tuvalu']
+# Drop countries which are completely missing in vdem
+missing=['Andorra', 
+         'Antigua and Barbuda', 
+         'Bahamas', 
+         'Belize', 
+         'Brunei',
+         'Dominica', 
+         'Grenada', 
+         'Kiribati', 
+         'Liechtenstein',
+         'Marshall Islands', 
+         'Micronesia', 
+         'Monaco', 
+         'Nauru', 
+         'Palau',
+         'Saint Kitts and Nevis', 
+         'Saint Lucia',
+         'Saint Vincent and the Grenadines', 
+         'Samoa', 
+         'San Marino', 
+         'Tonga',
+         'Tuvalu']
 
 base = base[~base['country'].isin(missing)]
 df = df[~df['country'].isin(missing)]
 df=pd.merge(df,base[["year","gw_codes","v2x_polyarchy","v2x_libdem","v2x_partipdem","v2x_delibdem","v2x_egaldem","v2x_neopat","v2x_civlib","v2x_clphy","v2x_corr","v2x_rule"]],on=["year","gw_codes"],how="left")
+df.isnull().any()
 
                             ##################
                             ### World Bank ###
@@ -1263,7 +1115,7 @@ c_codes = {'Afghanistan': [700, 'AFG'],
             'Tajikistan': [702, 'TJK'],
             'Tanzania': [510, 'TZA'],
             'Thailand': [800, 'THA'],
-            'Taiwan': [713, 'TWN'],
+            'Taiwan': [713, 'XYZ'], # Not in WB
             'Togo': [461, 'TGO'],
             'Tonga': [972, 'TON'],
             'Trinidad and Tobago': [52, 'TTO'],
@@ -1289,11 +1141,14 @@ c_codes = {'Afghanistan': [700, 'AFG'],
 c_codes=pd.DataFrame.from_dict(c_codes,orient='index')
 c_codes = c_codes.reset_index()
 c_codes.columns = ['country','gw_codes','iso_alpha3']
-wdi = pd.DataFrame()
+c_codes = c_codes.loc[c_codes["iso_alpha3"]!= "XYZ"]
+
 feat_dev = ["NY.GDP.PCAP.CD", # GDP per capita (current US$)
             "SP.POP.TOTL", # Population size
             ]
 
+# Load wb data from api
+wdi = pd.DataFrame()
 for i in list(range(1989, 2024, 1)):
     print(i)
     wdi_s = wb.data.DataFrame(feat_dev, list(c_codes.iso_alpha3), [i])
@@ -1302,38 +1157,55 @@ for i in list(range(1989, 2024, 1)):
     wdi = pd.concat([wdi, wdi_s], ignore_index=True)  # merge for each year
 
 wdi = pd.merge(wdi,c_codes[['gw_codes','iso_alpha3']],how='left',left_on=['economy'],right_on=['iso_alpha3'])
+wdi.to_csv("data/wdi.csv") 
 
-# A. GDP per capita (current US$)
+# GDP per capita (current US$)
 base=df[["year","country","gw_codes"]].drop_duplicates(subset=["year","country"]).reset_index(drop=True)
 base=pd.merge(left=base,right=wdi[["year","gw_codes","NY.GDP.PCAP.CD","SP.POP.TOTL"]],on=["year","gw_codes"],how="left")
+
+# Impute missing values
 base_imp_final=linear_imp_grouped(base,"country",["NY.GDP.PCAP.CD"])
 base_imp_final=simple_imp_grouped(base_imp_final,"country",["NY.GDP.PCAP.CD"])
 
-for c in base.country.unique():
-    fig, axs = plt.subplots(1, 2, figsize=(10, 5))
-    axs[0].plot(base["year"].loc[base["country"]==c], base["NY.GDP.PCAP.CD"].loc[base["country"]==c])
-    axs[1].plot(base_imp_final["year"].loc[base_imp_final["country"]==c], base_imp_final["NY.GDP.PCAP.CD"].loc[base_imp_final["country"]==c])
-    axs[0].set_title(c)
-    plt.show()
+# check
+#for c in base.country.unique():
+#    fig, axs = plt.subplots(1, 2, figsize=(10, 5))
+#    axs[0].plot(base["year"].loc[base["country"]==c], base["NY.GDP.PCAP.CD"].loc[base["country"]==c])
+#    axs[1].plot(base_imp_final["year"].loc[base_imp_final["country"]==c], base_imp_final["NY.GDP.PCAP.CD"].loc[base_imp_final["country"]==c])
+#    axs[0].set_title(c)
+#    plt.savefig(f"out/gdp_imp_{c}.png",dpi=300,bbox_inches='tight')    
+#    plt.show()
+
+# Merge
 df=pd.merge(df,base_imp_final[["year","gw_codes","NY.GDP.PCAP.CD"]],on=["year","gw_codes"],how="left")
 
-# B. Population size
+# Population size
 base=df[["year","country","gw_codes"]].drop_duplicates(subset=["year","country"]).reset_index(drop=True)
 base=pd.merge(left=base,right=wdi[["year","gw_codes","NY.GDP.PCAP.CD","SP.POP.TOTL"]],on=["year","gw_codes"],how="left")
+
+# Impute missing values
 base_imp_final=linear_imp_grouped(base,"country",["SP.POP.TOTL"])
 base_imp_final=simple_imp_grouped(base_imp_final,"country",["SP.POP.TOTL"])
 
-for c in base.country.unique():
-    fig, axs = plt.subplots(1, 2, figsize=(10, 5))
-    axs[0].plot(base["year"].loc[base["country"]==c], base["SP.POP.TOTL"].loc[base["country"]==c])
-    axs[1].plot(base_imp_final["year"].loc[base_imp_final["country"]==c], base_imp_final["SP.POP.TOTL"].loc[base_imp_final["country"]==c])
-    axs[0].set_title(c)
-    plt.show()
+# check
+#for c in base.country.unique():
+#    fig, axs = plt.subplots(1, 2, figsize=(10, 5))
+#    axs[0].plot(base["year"].loc[base["country"]==c], base["SP.POP.TOTL"].loc[base["country"]==c])
+#    axs[1].plot(base_imp_final["year"].loc[base_imp_final["country"]==c], base_imp_final["SP.POP.TOTL"].loc[base_imp_final["country"]==c])
+#    axs[0].set_title(c)
+#    plt.savefig(f"out/pop_imp_{c}.png",dpi=300,bbox_inches='tight')    
+#    plt.show()
+    
+# Merge    
 df=pd.merge(df,base_imp_final[["year","gw_codes","SP.POP.TOTL"]],on=["year","gw_codes"],how="left")
+
+# Remove countries completely missing in WB data
 df = df[~df['country'].isin(["North Korea","Taiwan","Venezuela"])]
 
 # Save
 df.isnull().any()
+df.duplicated().any()
+df=df.sort_values(by=["country","dd"])
 df.to_csv("data/df.csv")  
 
 
