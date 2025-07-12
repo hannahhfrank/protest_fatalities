@@ -6,6 +6,7 @@ import json
 from dtaidistance import dtw
 from scipy.cluster.hierarchy import linkage,fcluster
 import matplotlib as mpl
+from tslearn.barycenters import dtw_barycenter_averaging
 from tslearn.clustering import silhouette_score
 from scipy.spatial.distance import squareform
 import os 
@@ -14,9 +15,8 @@ mpl.rcParams['text.usetex'] = True
 mpl.rcParams['font.family'] = 'serif'
 mpl.rcParams['font.serif'] = ['Computer Modern Roman']
 mpl.rcParams['text.latex.preamble'] = r'\usepackage{lmodern}\usepackage[T1]{fontenc}'
-import warnings
-warnings.simplefilter(action='ignore', category=FutureWarning)
 
+# Remove microstates
 micro_states={"Dominica":54,
               "Grenada":55,
               "Saint Lucia":56,
@@ -41,34 +41,47 @@ micro_states={"Dominica":54,
               "Micronesia":987,
               "Samoa":990}
 
+# Load data
 df=pd.read_csv("data/df.csv",index_col=0)
 df = df[~df['gw_codes'].isin(list(micro_states.values()))]
 df = df.reset_index(drop=True)
+
+# Transforms
 preprocess_min_max_group(df,"fatalities","country")
 df['fatalities_norm_lag1'] = df.groupby('gw_codes')['fatalities_norm'].shift(1).fillna(0)
 df["SP.POP.TOTL_log"]=np.log(df["SP.POP.TOTL"])
 df["NY.GDP.PCAP.CD_log"]=np.log(df["NY.GDP.PCAP.CD"])
 df["fatalities_log"]=np.log(df["fatalities"]+1)
-df.isnull().any()
 
-# Get clusters
+##############################################
+### Step 1:  Get clusters for each country ###
+##############################################
+
+# Get within country clusters
 countries=df.country.unique()
-final_dynamic_linear=pd.DataFrame()
-shapes_ols={}
+final_out=pd.DataFrame()
+shapes={}
 
 for c in countries:
     print(c)
     df_s=df.loc[df["country"]==c].copy()
     ts=df["n_protest_events"].loc[df["country"]==c]
-    dOLSx = clustering(ts)
+    
+    # Get clusters for each country
+    cluster_out = clustering(ts)
+    
+    # Min-max normalize input sequences
     min_val = np.min(ts)
     max_val = np.max(ts)
     ts_norm = (ts - min_val) / (max_val - min_val)
     ts_norm=ts_norm.fillna(0) 
     df_s["n_protest_events_norm"]=ts_norm
     
-    df_s=df_s[-len(dOLSx["clusters"]):]
-    df_s["clusters"]=dOLSx["clusters"]
+    # Add cluster assignments
+    df_s=df_s[-len(cluster_out["clusters"]):]
+    df_s["clusters"]=cluster_out["clusters"]
+    
+    # Add static protest variables
     df_s['n_protest_events_lag_1']=(df_s['n_protest_events'].shift(1))
     df_s['n_protest_events_lag_2']=(df_s['n_protest_events'].shift(2))
     df_s['n_protest_events_lag_3']=(df_s['n_protest_events'].shift(3))
@@ -81,43 +94,52 @@ for c in countries:
     df_s['n_protest_events_norm_lag_4']=(df_s['n_protest_events_norm'].shift(4))
     df_s['n_protest_events_norm_lag_5']=(df_s['n_protest_events_norm'].shift(5))
         
-    final_dynamic_linear = pd.concat([final_dynamic_linear, df_s])
-    final_dynamic_linear.to_csv("data/preds_dynamic_linear_reg.csv")  
-    shapes_ols.update({f"dols_{c}":[dOLSx["s"],dOLSx["shapes"].tolist(),dOLSx["clusters"].tolist()]})
+    # Save ts with cluster assignments
+    final_out = pd.concat([final_out, df_s])
+    final_out.to_csv("data/cluster_reg.csv")  
+    
+    # Save corresponding centroids
+    shapes.update({f"s_{c}":[cluster_out["s"],cluster_out["shapes"].tolist(),cluster_out["clusters"].tolist()]})
     
 with open("data/ols_shapes_reg.json", 'w') as json_file:
-    json.dump(shapes_ols, json_file)
- 
-# Clustering of the centroids 
-final_dynamic_linear=pd.read_csv("data/preds_dynamic_linear_reg.csv",index_col=0)  
-with open("data/ols_shapes_reg.json", 'r') as json_file:
-    shapes_rf = json.load(json_file)
-shapes_rf = dict(filter(lambda item: item[0].startswith("dols_"), shapes_rf.items()))
+    json.dump(shapes, json_file)
+    
+###########################################
+### Step 2: Clustering of the centroids ###
+###########################################
 
-# Optimize
+# Load within country clusters
+with open("data/ols_shapes_reg.json", 'r') as json_file:
+    shapes = json.load(json_file)
+    
+# Cluster the within country centroids
 score_test=-1
 for k in [3,5,7]:
     
     # Get centroids
     df_cen=pd.DataFrame()
-    for d in shapes_rf.keys():
-        for i in range(len(shapes_rf[d][1])):
-            lst = pd.DataFrame([[d[5:], i]], columns=['country', 'clusters'])
-            add=pd.DataFrame([item for sublist in shapes_rf[d][1][i] for item in sublist]).T
+    # For each country
+    for d in shapes.keys():
+        # Access the centroids
+        for i in range(len(shapes[d][1])):
+            # For each centroid, save country, cluster number, and centroid in df
+            lst = pd.DataFrame([[d[2:], i]], columns=['country', 'clusters'])
+            add=pd.DataFrame([item for sublist in shapes[d][1][i] for item in sublist]).T
             lst=pd.concat([lst,add],axis=1)
             df_cen=pd.concat([df_cen,lst])
     
-    # Remove missing values
+    # Remove missing values which occur because the centroids can have
+    # different lengths
     arr=df_cen[[0,1,2,3,4,5,6,7,8,9,10,11]].values
     matrix_in = []
     for row in arr:
         row=row.astype(float)
         matrix_in.append(row[~np.isnan(row)])
         
-    # Cluster
+    # Hierachical clustering  
     matrix_d = dtw.distance_matrix_fast(matrix_in)    
     dist_matrix = squareform(matrix_d)
-    link_matrix = linkage(dist_matrix, method='ward')
+    link_matrix = linkage(dist_matrix, method='complete')
     clusters = fcluster(link_matrix, t=k, criterion='maxclust')
     df_cen["clusters_cen"]=clusters
     
@@ -125,27 +147,27 @@ for k in [3,5,7]:
     score = silhouette_score(matrix_in, clusters,metric="dtw")
     print(score)
     
+    # If s score is larger than test score update results
     if score>score_test: 
         score_test=score
         df_cen_final=df_cen
         clusters_s = np.unique(clusters)
-        centroids = []
             
         # Get centroids
+        centroids = []
+        # Loop over clusters
         for ids in clusters_s:
+            # Get all within centroids assigned to the specific cluster
             cluster_seq = [matrix_in[i] for i, cluster in enumerate(clusters) if cluster == ids]
-            matrix_d = dtw.distance_matrix_fast(cluster_seq)
-            rep_idx = np.argmin(matrix_d.sum(axis=0))
-            centroids.append(cluster_seq[rep_idx])
+            # Then calculate the centroid using DTW Barycenter Averaging (DBA)
+            # takes the mean for time series
+            cen = dtw_barycenter_averaging(cluster_seq, barycenter_size=7)
+            centroids.append(cen.ravel())
         
         # Plot
-        n_clusters = len(centroids)
-        cols = 3
-        rows = n_clusters // cols + (n_clusters % cols > 0)
-            
-        plt.figure(figsize=(10, 3 * rows))
+        plt.figure(figsize=(10, 6))
         for i, seq in enumerate(centroids):
-            plt.subplot(rows, cols, i+1)
+            plt.subplot(2, 3, i+1)
             plt.plot(seq,linewidth=2,c="black")
             plt.title(f'Cluster {i+1}',size=25)
             plt.yticks([],[])
@@ -155,21 +177,22 @@ for k in [3,5,7]:
         plt.savefig("out/clusters_clusters.eps",dpi=300,bbox_inches="tight")
         plt.show()
 
-# Save df
-df_final=pd.merge(final_dynamic_linear, df_cen_final[["country","clusters","clusters_cen"]],on=["clusters","country"])
+
+# Merge centroids of the centroids with the original data
+final_out=pd.read_csv("data/cluster_reg.csv",index_col=0)  
+df_final=pd.merge(final_out, df_cen_final[["country","clusters","clusters_cen"]],on=["clusters","country"])
+
+# Create a dummy set for the cluster assignments
 dummies = pd.get_dummies(df_final['clusters_cen'], prefix='cluster').astype(int)
 final_shapes_s = pd.concat([df_final, dummies], axis=1)
+
+# Calculate lagged dependent variable
 final_shapes_s['fatalities_log_lag1'] = final_shapes_s.groupby('gw_codes')['fatalities_log'].shift(1)
-final_shapes_s['fatalities_log_lag2'] = final_shapes_s.groupby('gw_codes')['fatalities_log'].shift(2)
-final_shapes_s['fatalities_log_lag3'] = final_shapes_s.groupby('gw_codes')['fatalities_log'].shift(3)
-final_shapes_s['fatalities_log_lag4'] = final_shapes_s.groupby('gw_codes')['fatalities_log'].shift(4)
-final_shapes_s['fatalities_log_lag5'] = final_shapes_s.groupby('gw_codes')['fatalities_log'].shift(5)
-final_shapes_s['fatalities_log_lag6'] = final_shapes_s.groupby('gw_codes')['fatalities_log'].shift(6)
-final_shapes_s['fatalities_log_lag7'] = final_shapes_s.groupby('gw_codes')['fatalities_log'].shift(7)
-final_shapes_s['fatalities_log_lag8'] = final_shapes_s.groupby('gw_codes')['fatalities_log'].shift(8)
-final_shapes_s['fatalities_log_lag9'] = final_shapes_s.groupby('gw_codes')['fatalities_log'].shift(9)
-final_shapes_s['fatalities_log_lag10'] = final_shapes_s.groupby('gw_codes')['fatalities_log'].shift(10)
+
+# Save df
 final_shapes_s.to_csv("data/final_shapes_s.csv")  
+
+# ---> move to R for regression analysis
 
 
 
