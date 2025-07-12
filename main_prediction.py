@@ -67,7 +67,7 @@ final_dynamic=pd.DataFrame()
 shapes_rf={}
 final_dynamic_linear=pd.DataFrame()
 shapes_ols={}
-for c in countries[:1]:
+for c in countries:
     print(c)
     ts=df["n_protest_events"].loc[df["country"]==c]
     Y=df["fatalities"].loc[df["country"]==c]
