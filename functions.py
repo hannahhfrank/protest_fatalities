@@ -1,11 +1,11 @@
 import pandas as pd
-from sklearn.model_selection import GridSearchCV
+from sklearn.model_selection import RandomizedSearchCV,GridSearchCV
 import numpy as np
 from sklearn.model_selection import PredefinedSplit
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.impute import SimpleImputer
-from sklearn.metrics import mean_squared_error
 from tslearn.clustering import TimeSeriesKMeans,silhouette_score
+import math
 
 def preprocess_min_max_group(df, x, group):
     out = pd.DataFrame()
@@ -104,15 +104,9 @@ def linear_imp_grouped(df, group, vars_input):
     return out
 
 
-def general_model(ts,
-                  Y,
-                  model_pred=RandomForestRegressor(random_state=0),
-                  X: bool = None,
-                  norm: bool=False,
-                  metric: str='mse',
-                  grid=None,
-                  ar_test: list=[1,2,4,6,12]):
-    
+def general_model(ts, Y, model_pred=RandomForestRegressor(random_state=0),  X=None, norm=False, grid=None, ar_test=[1,2,4,6,12]):
+
+    # Normalize output    
     if norm==True:
         mini = np.min(Y)
         maxi = np.max(Y)
@@ -121,271 +115,284 @@ def general_model(ts,
                
     min_test=np.inf
     for ar in ar_test:
-        try:        
-            def lags(series):
-                last = series.iloc[-ar:].fillna(0)
-                return last.tolist() + [0] * (ar - len(last))
-                    
-            data_matrix = []
-            for i in range(ar, len(ts) + 1):
-                data_matrix.append(lags(ts.iloc[:i]))
-                        
-            cols_name=[]
-            for i in range(ar):
-                cols_name.append(f"t-{i}")  
-            cols_name=cols_name[::-1]
-            in_put=pd.DataFrame(data_matrix,columns=cols_name)
-            output=Y.iloc[-len(in_put):]
-                    
-            if X is not None:
-                X=X.iloc[-len(in_put):].reset_index(drop=True)
-                in_put=pd.concat([X, in_put],axis=1)
-                        
-            y_train = output[:-(len(ts)-int(0.7*len(ts)))]
-            x_train = in_put[:-(len(ts)-int(0.7*len(ts)))]
-            
-            y_test = output[-(len(ts)-int(0.7*len(ts))):]        
-            x_test = in_put[-(len(ts)-int(0.7*len(ts))):]     
-            
-            if grid is not None:
-                val_train_ids = list(y_train[:int(0.5*len(y_train))].index)
-                val_test_ids = list(y_train[int(0.5*len(y_train)):].index)
-                splits = np.array([-1] * len(val_train_ids) + [0] * len(val_test_ids))
-                splits = PredefinedSplit(test_fold=splits)
-                grid_search = GridSearchCV(estimator=model_pred, param_grid=grid, cv=splits, verbose=0, n_jobs=-1)
-                grid_search.fit(x_train, y_train)
-                pred = grid_search.predict(x_test)
-                
-            else: 
-                model_pred.fit(x_train, y_train)
-                pred = model_pred.predict(x_test)        
-           
-            if y_test.max()==0:
-                error=((y_test.reset_index(drop=True)-pd.Series(pred))**2).mean()
-    
-            else:   
-                if metric=="mae":
-                    error=abs(y_test.reset_index(drop=True)-pd.Series(pred)).mean()
-                elif metric=="mse":
-                    error=((y_test.reset_index(drop=True)-pd.Series(pred))**2).mean()
-                elif metric=="wmse":
-                    error=mean_squared_error(y_test,pred,sample_weight=y_test)
-                                
-            if error<min_test:
-                min_test=error
-                para=[ar]
-                preds_final=pred
-        except:
-            continue
 
-    print(f"Final RF {para}, with {metric}: {min_test}")
-    if norm==True: 
-        y_revert = y_test * (maxi - mini) + mini
-        y_pred_revert = pd.Series(preds_final) * (maxi - mini) + mini
+        # Function to get matrix with lags
+        def lags(series):
+            last = series.iloc[-ar:].fillna(0)
+            return last.tolist() + [0] * (ar - len(last))
+           
+        # Get matrix with temporal lags for ts
+        data_matrix = []
+        for i in range(ar, len(ts) + 1):
+            data_matrix.append(lags(ts.iloc[:i]))
+        in_put=pd.DataFrame(data_matrix,)
         
-        return({'rf_pred':pd.Series(preds_final),'actuals':y_test.reset_index(drop=True),
-               'rf_pred_revert':y_pred_revert, 'actuals_revert':y_revert.reset_index(drop=True)})
+        # Add X variables if available 
+        if X is not None:
+            # Reset index to avoid misalignment
+            # Concat with X as base and delete missing observations
+            X=X.reset_index(drop=True)
+            in_put=pd.concat([X,in_put],axis=1)
+            in_put = in_put.dropna()
+            
+        # Make sure column names are character
+        in_put.columns = in_put.columns.map(str)
+                    
+        # Obtain output
+        # Reset index to avoid misalignment and 
+        # crop output to the size of the input   
+        output=Y.reset_index(drop=True)
+        output=Y.iloc[-len(in_put):]
+                    
+        # Data split
+        y_train = output[:-(len(ts)-int(0.7*len(ts)))]
+        x_train = in_put[:-(len(ts)-int(0.7*len(ts)))]
+        
+        y_test = output[-(len(ts)-int(0.7*len(ts))):]        
+        x_test = in_put[-(len(ts)-int(0.7*len(ts))):]     
+
+        # If optimization
+        if grid is not None:
+            # Optimize in trainig data, based on a 50/50 split
+            
+            # Get splits
+            val_train_ids = list(y_train[:int(0.5*len(y_train))].index)
+            val_test_ids = list(y_train[int(0.5*len(y_train)):].index)
+            splits = np.array([-1] * len(val_train_ids) + [0] * len(val_test_ids))
+            splits = PredefinedSplit(test_fold=splits)
+            
+            # Check size of opti grid, and decide if random or exhaustive optimization
+            grid_size = math.prod(len(v) for v in grid.values())
+            if grid_size > 50:
+                grid_search = RandomizedSearchCV(estimator=model_pred, param_distributions=grid, cv=splits, verbose=0, n_jobs=-1, n_iter=50, random_state=1)  
+            else:
+                grid_search = GridSearchCV(estimator=model_pred, param_grid=grid, cv=splits, verbose=0, n_jobs=-1)
+            grid_search.fit(x_train, y_train)
+            pred = grid_search.predict(x_test)
+        # If no optimization
+        else: 
+            model_pred.fit(x_train, y_train)
+            pred = model_pred.predict(x_test)        
+       
+        # MSE
+        error=((y_test.reset_index(drop=True)-pd.Series(pred))**2).mean()
+        
+        # If MSE is lower than test mse, update results
+        if error<min_test:
+            min_test=error
+            para=[ar]
+            preds_final=pred
+
+    print(f"Final RF {para}, with MSE: {min_test}")
+
+    return({'pred':pd.Series(preds_final),'actuals':y_test.reset_index(drop=True)})
     
-    return({'rf_pred':pd.Series(preds_final),'actuals':y_test.reset_index(drop=True)})
             
         
-def general_dynamic_model(y,
-                    Y,
-                    model_pred=RandomForestRegressor(random_state=0),
-                    X: bool = None,
-                    norm: bool=False,
-                    model=TimeSeriesKMeans(n_clusters=5,metric="dtw",max_iter_barycenter=100,verbose=0,random_state=0),
-                    metric: str='mse',
-                    grid=None,
-                    ar_test: list=[1,2,4,6,12],
-                    cluster_n:list=[3,5,7],
-                    w_length:list=[3,5,7,9]):
+def general_dynamic_model(ts, Y, model_pred=RandomForestRegressor(random_state=0), X=None, norm=False, model=TimeSeriesKMeans(n_clusters=5,metric="dtw",max_iter_barycenter=100,verbose=0,random_state=0),grid=None,ar_test=[1,2,4,6,12],cluster_n=[3,5,7],w_length=[3,5,7,9]):
     
-    y_cluster=y
+    # Normalize output
     if norm==True:
         mini = np.min(Y)
         maxi = np.max(Y)
         Y = (Y - mini) / (maxi - mini)
         Y=Y.fillna(0) 
     
-    # Clustering  
+    # (1) Clustering  
     min_test=np.inf
     for k in cluster_n:
         for w in w_length:
             model.n_clusters=k
-            try: 
-                # adapted from: https://github.com/ThomasSchinca/ShapeF/blob/Thomas_draft/functions.py
-                # Training 
-                y_s=y_cluster.iloc[:int(0.7*len(y_cluster))]
-                seq_matrix=[]
-                for i in range(w,len(y_s)):
-                    seq_matrix.append(y_cluster.iloc[i-w:i])   
-                seq_matrix=np.array(seq_matrix)
-                    
-                # Scaling
-                seq_matrix_l= pd.DataFrame(seq_matrix).T
-                seq_matrix_l=(seq_matrix_l-seq_matrix_l.min())/(seq_matrix_l.max()-seq_matrix_l.min())
-                seq_matrix_l=seq_matrix_l.fillna(0) 
-                seq_matrix_l=np.array(seq_matrix_l.T)
-                seq_matrix_l=seq_matrix_l.reshape(len(seq_matrix_l),w,1)
-                    
-                # Clustering 
-                model.n_clusters=k
-                model_clust = model.fit(seq_matrix_l)
-                cl_train= model_clust.labels_
-                cl_train=pd.Series(cl_train)
-                cl_train=pd.get_dummies(cl_train).astype(int)
-                    
-                cl_b=pd.DataFrame(columns=range(k))
-                cl_final=pd.concat([cl_b,cl_train],axis=0)   
-                cl_final=cl_final.fillna(0)
                 
-                # Test data 
-                seq_matrix=[]
-                for i in range(len(y_s),len(y_cluster)):
-                    seq_matrix.append(y_cluster.iloc[i-w:i])
-                seq_matrix=np.array(seq_matrix)
-                    
-                # Sacling
-                seq_matrix_l= pd.DataFrame(seq_matrix).T
-                seq_matrix_l=(seq_matrix_l-seq_matrix_l.min())/(seq_matrix_l.max()-seq_matrix_l.min())
-                seq_matrix_l=seq_matrix_l.fillna(0) 
-                seq_matrix_l=np.array(seq_matrix_l.T)
-                seq_matrix_l=seq_matrix_l.reshape(len(seq_matrix_l),w,1)
-                    
-                cl_test = model_clust.predict(seq_matrix_l)
-                y_test_seq = model_clust.predict(seq_matrix_l)
-                cl_test=pd.Series(cl_test)
-                cl_test=pd.get_dummies(cl_test).astype(int)
-                    
-                y_t=pd.DataFrame(columns=range(k))
-                cl_test=pd.concat([y_t,cl_test],axis=0)   
-                cl_test=cl_test.fillna(0)  
-                    
-                clusters=pd.concat([cl_final,cl_test],axis=0,ignore_index=True)
-                index=list(range(len(y)-len(clusters), len(y)))
-                clusters.set_index(pd.Index(index),inplace=True)
-                    
-                # Predictions 
-                for ar in ar_test:
-                    try:                            
-                        def lags(series):
-                            last = series.iloc[-ar:].fillna(0)
-                            return last.tolist() + [0] * (ar - len(last))
-                                
-                        data_matrix = []
-                        for i in range(ar, len(y) + 1):
-                            data_matrix.append(lags(y.iloc[:i]))
-                                    
-                        cols_name=[]
-                        for i in range(ar):
-                            cols_name.append(f"t-{i}")  
-                        cols_name=cols_name[::-1]
-                        in_put=pd.DataFrame(data_matrix,columns=cols_name)
-                                
-                        index=list(range(len(y)-len(in_put), len(y)))
-                        in_put.set_index(pd.Index(index),inplace=True)
-                                    
-                        if len(clusters)>=len(in_put):
-                            in_put=pd.concat([clusters,in_put],axis=1)
-                        else: 
-                            in_put=pd.concat([in_put,clusters],axis=1)
-                                    
-                        in_put=in_put.fillna(0)
-                                    
-                        if X is not None:
-                            X=X.reset_index(drop=True)
-                            in_put=pd.concat([X,in_put],axis=1)
-                            in_put = in_put.dropna()
-                                
-                        in_put.columns = in_put.columns.map(str)
-                                
-                        output=Y.reset_index(drop=True)
-                        output=output[-len(in_put):]
+            # Adapted from: https://github.com/ThomasSchinca/ShapeF/blob/Thomas_draft/functions.py
+            # Get input matrix for training data 
+            y_s=ts.iloc[:int(0.7*len(ts))]
+            seq_matrix=[]
+            for i in range(w,len(y_s)):
+                seq_matrix.append(ts.iloc[i-w:i])   
+            seq_matrix=np.array(seq_matrix)
                 
-                        y_train = output[:-(len(y)-int(0.7*len(y)))]
-                        x_train = in_put[:-(len(y)-int(0.7*len(y)))]
+            # Min-max normalize the time subsequences
+            seq_matrix_l= pd.DataFrame(seq_matrix).T
+            seq_matrix_l=(seq_matrix_l-seq_matrix_l.min())/(seq_matrix_l.max()-seq_matrix_l.min())
+            seq_matrix_l=seq_matrix_l.fillna(0) 
+            seq_matrix_l=np.array(seq_matrix_l.T)
+            seq_matrix_l=seq_matrix_l.reshape(len(seq_matrix_l),w,1)
                 
-                        y_test = output[-(len(y)-int(0.7*len(y))):]        
-                        x_test = in_put[-(len(y)-int(0.7*len(y))):] 
-                                
-                        if grid is not None: 
-                            val_train_ids = list(y_train[:int(0.5*len(y_train))].index)
-                            val_test_ids = list(y_train[int(0.5*len(y_train)):].index)
-                            splits = np.array([-1] * len(val_train_ids) + [0] * len(val_test_ids))
-                            splits = PredefinedSplit(test_fold=splits)
-                            grid_search = GridSearchCV(estimator=model_pred, param_grid=grid, cv=splits, verbose=0, n_jobs=-1)
-                            grid_search.fit(x_train, y_train.values.ravel())
-                            pred = grid_search.predict(x_test)
+            # Run the clustering algorithm on the training data 
+            model.n_clusters=k
+            model_clust = model.fit(seq_matrix_l)
+            cl_train= model_clust.labels_
+            
+            # Get dummy set of cluster assignments
+            cl_train=pd.Series(cl_train)
+            cl_train=pd.get_dummies(cl_train).astype(int)
+            cl_b=pd.DataFrame(columns=range(k))
+            cl_final=pd.concat([cl_b,cl_train],axis=0)   
+            cl_final=cl_final.fillna(0)
+            
+            # Get input matrix for test data 
+            seq_matrix=[]
+            for i in range(len(y_s),len(ts)):
+                seq_matrix.append(ts.iloc[i-w:i])
+            seq_matrix=np.array(seq_matrix)
+                
+            # Min-max normalize the time subsequences
+            seq_matrix_l= pd.DataFrame(seq_matrix).T
+            seq_matrix_l=(seq_matrix_l-seq_matrix_l.min())/(seq_matrix_l.max()-seq_matrix_l.min())
+            seq_matrix_l=seq_matrix_l.fillna(0) 
+            seq_matrix_l=np.array(seq_matrix_l.T)
+            seq_matrix_l=seq_matrix_l.reshape(len(seq_matrix_l),w,1)
+                
+            # Use the clustering model from the training data
+            # to assign test subsequences to a cluster
+            cl_test = model_clust.predict(seq_matrix_l)
+            y_test_seq = model_clust.predict(seq_matrix_l) # Copy cluster series
+            
+            # Get dummy set of cluster assignments
+            cl_test=pd.Series(cl_test)
+            cl_test=pd.get_dummies(cl_test).astype(int)
+            y_t=pd.DataFrame(columns=range(k))
+            cl_test=pd.concat([y_t,cl_test],axis=0)   
+            cl_test=cl_test.fillna(0)  
+                
+            # Merge training and testing cluster assignments
+            # and reset index to avoid misalignment
+            clusters=pd.concat([cl_final,cl_test],axis=0,ignore_index=True)
+            index=list(range(len(ts)-len(clusters), len(ts)))
+            clusters.set_index(pd.Index(index),inplace=True)
+                    
+            # (2) Predictions 
+            for ar in ar_test:
+                
+                # Function to get matrix with lags
+                def lags(series):
+                    last = series.iloc[-ar:].fillna(0)
+                    return last.tolist() + [0] * (ar - len(last))
+                
+                # Get matrix with temporal lags for ts
+                data_matrix = []
+                for i in range(ar, len(ts) + 1):
+                    data_matrix.append(lags(ts.iloc[:i]))
+                in_put=pd.DataFrame(data_matrix)
+                        
+                # Set index to align with ts 
+                index=list(range(len(ts)-len(in_put), len(ts)))
+                in_put.set_index(pd.Index(index),inplace=True)
+                
+                # Merge lags with clusters
+                # If clusters are longer, take as base to avoid misalignment
+                if len(clusters)>=len(in_put):
+                    in_put=pd.concat([clusters,in_put],axis=1)
+                # If lags are longer, take as base to avoid misalignment
+                else: 
+                    in_put=pd.concat([in_put,clusters],axis=1)
+                    
+                # Fill missing values with zero
+                # These oocur due to the potentially different start
+                # indices in clusters and the input matrix
+                in_put=in_put.fillna(0)
                             
-                        else: 
-                            model_pred.fit(x_train, y_train.values.ravel())
-                            pred = model_pred.predict(x_test)                           
+                # Add X variables if available 
+                if X is not None:
+                    # Reset index to avoid misalignment
+                    # Concat with X as base and delete missing observations
+                    X=X.reset_index(drop=True)
+                    in_put=pd.concat([X,in_put],axis=1)
+                    in_put = in_put.dropna()
+                
+                # Make sure column names are character
+                in_put.columns = in_put.columns.map(str)
+                        
+                # Obtain output
+                # Reset index to avoid misalignment and 
+                # crop output to the size of the input   
+                output=Y.reset_index(drop=True)
+                output=output[-len(in_put):]
         
-                        if y_test.max()==0:
-                            error=((y_test.reset_index(drop=True)-pd.Series(pred))**2).mean()
-                                        
-                        else:
-                            if metric=="mae":
-                                error=abs(y_test.reset_index(drop=True)-pd.Series(pred)).mean()
-                            elif metric=="mse":
-                                error=((y_test.reset_index(drop=True)-pd.Series(pred))**2).mean()
-                            elif metric=="wmse":
-                                error=mean_squared_error(y_test,pred,sample_weight=y_test)
-                                                    
-                        if error<min_test:
-                            min_test=error
-                            para=[ar,k,w]
-                            preds_final=pred
-                            shapes=model_clust.cluster_centers_
-                            seq=y_test_seq
-                            if y_test_seq.max()==0:
-                                s=np.nan
-                            else: 
-                                s=silhouette_score(seq_matrix_l, y_test_seq, metric="dtw") 
-
-                    except:
-                        continue
-            except: 
-                continue
-
-    print(f"Final DRF {para}, with {metric}: {min_test}")
-    
-    if norm==True:
-        y_revert = y_test * (maxi - mini) + mini
-        y_pred_revert = pd.Series(preds_final) * (maxi - mini) + mini
+                # Data split
+                y_train = output[:-(len(ts)-int(0.7*len(ts)))]
+                x_train = in_put[:-(len(ts)-int(0.7*len(ts)))]
         
-        return({'drf_pred':pd.Series(preds_final),'actuals':y_test.reset_index(drop=True),
-               'drf_pred_revert':y_pred_revert, 'actuals_revert':y_revert.reset_index(drop=True),
-               "shapes":shapes,"s":s,"clusters":seq})
+                y_test = output[-(len(ts)-int(0.7*len(ts))):]        
+                x_test = in_put[-(len(ts)-int(0.7*len(ts))):] 
+                    
+                # If optimization
+                if grid is not None: 
+                    # Optimize in trainig data, based on a 50/50 split
+                    
+                    # Get splits
+                    val_train_ids = list(y_train[:int(0.5*len(y_train))].index)
+                    val_test_ids = list(y_train[int(0.5*len(y_train)):].index)
+                    splits = np.array([-1] * len(val_train_ids) + [0] * len(val_test_ids))
+                    splits = PredefinedSplit(test_fold=splits)
+                    
+                    # Check size of opti grid, and decide if random or exhaustive optimization
+                    grid_size = math.prod(len(v) for v in grid.values())
+                    if grid_size > 50:
+                        grid_search = RandomizedSearchCV(estimator=model_pred, param_distributions=grid, cv=splits, verbose=0, n_jobs=-1, n_iter=50, random_state=1)  
+                    else:
+                        grid_search = GridSearchCV(estimator=model_pred, param_grid=grid, cv=splits, verbose=0, n_jobs=-1)
+                        
+                    grid_search.fit(x_train, y_train.values.ravel())
+                    pred = grid_search.predict(x_test)
+                
+                # If no optimization
+                else: 
+                    model_pred.fit(x_train, y_train.values.ravel())
+                    pred = model_pred.predict(x_test)                           
+
+                # MSE
+                error=((y_test.reset_index(drop=True)-pd.Series(pred))**2).mean()
+         
+                # If MSE is lower than test mse, update results
+                if error<min_test:
+                    min_test=error
+                    para=[ar,k,w]
+                    preds_final=pred
+                    shapes=model_clust.cluster_centers_
+                    seq=y_test_seq
+                    # If all test sequences are assigned to one cluster,
+                    # s score cannot be computed --> set to na
+                    if y_test_seq.max()==0:
+                        s=np.nan
+                    else: 
+                        s=silhouette_score(seq_matrix_l, y_test_seq, metric="dtw") 
+
+    print(f"Final DRF {para}, with MSE: {min_test}")
     
-    return({'drf_pred':pd.Series(preds_final),'actuals':y_test.reset_index(drop=True),"shapes":shapes,"s":s})
+    return({'pred':pd.Series(preds_final),'actuals':y_test.reset_index(drop=True),"shapes":shapes,"s":s,"clusters":seq})
+    
                     
 
-def clustering(y,
-               model=TimeSeriesKMeans(n_clusters=5,metric="dtw",max_iter_barycenter=100,verbose=0,random_state=0),
-               cluster_n:list=[3,5,7],
-               w_length:list=[5,6,7,8,9,10,11,12]):
+def clustering(ts, model=TimeSeriesKMeans(n_clusters=5,metric="dtw",max_iter_barycenter=100,verbose=0,random_state=0),cluster_n=[3,5,7],w_length=[5,6,7,8,9,10,11,12]):
 
     score_test=-1
     for k in cluster_n:
         for w in w_length:
             model.n_clusters=k
             
-            # adapted from: https://github.com/ThomasSchinca/ShapeF/blob/Thomas_draft/functions.py
+            # Adapted from: https://github.com/ThomasSchinca/ShapeF/blob/Thomas_draft/functions.py
+            
+            # Create input matrix for clustering
             seq_matrix=[]
-            for i in range(w,len(y)):
-                seq_matrix.append(y.iloc[i-w:i])  
+            for i in range(w,len(ts)):
+                seq_matrix.append(ts.iloc[i-w:i])  
             seq_matrix=np.array(seq_matrix)
             seq_matrix_l= pd.DataFrame(seq_matrix).T
             seq_matrix_l=(seq_matrix_l-seq_matrix_l.min())/(seq_matrix_l.max()-seq_matrix_l.min())
             seq_matrix_l=seq_matrix_l.fillna(0) 
             seq_matrix_l=np.array(seq_matrix_l.T)
+            
+            # Cluster subsequences            
             model.n_clusters=k
             model_clust = model.fit(seq_matrix_l)
             clusters=model_clust.labels_
+            
+            # Get s score
             s=silhouette_score(seq_matrix_l,clusters, metric="dtw")
             
+            # If s score is larger than than test value, update results
             if s>score_test:
                 score_test=s
                 s_final=s
