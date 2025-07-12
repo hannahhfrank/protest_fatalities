@@ -23,18 +23,19 @@ df$clusters_cen<-as.factor(df$clusters_cen)
 df$clusters_cen<-relevel(df$clusters_cen,ref="4")
 levels(df$clusters_cen)
 
+# Remove missing values
 MISSING <- is.na(df$n_protest_events_norm_lag_1 ) |
   is.na(df$n_protest_events_norm_lag_2) |
   is.na(df$n_protest_events_norm_lag_3) |
   is.na(df$fatalities_log_lag1) 
 df_s <- subset(df, subset = !MISSING)
 
-# SECTION I: Linear regression models -------------
+# Linear regression models -------------
 
 lm1 <- lm(fatalities_log ~ n_protest_events_norm + n_protest_events_norm_lag_1 + n_protest_events_norm_lag_2 + n_protest_events_norm_lag_3 + fatalities_log_lag1+NY.GDP.PCAP.CD_log+SP.POP.TOTL_log+v2x_libdem+v2x_clphy+v2x_corr+v2x_rule+v2x_civlib+v2x_neopat, data = df_s)
 summary(lm1)
 
-lm2 <- lm(fatalities_log ~ n_protest_events_norm + n_protest_events_norm_lag_1 + n_protest_events_norm_lag_2 + n_protest_events_norm_lag_3 + cluster_1 + cluster_2 + cluster_3 + cluster_5  + fatalities_log_lag1+NY.GDP.PCAP.CD_log+SP.POP.TOTL_log+v2x_libdem+v2x_clphy+v2x_corr+v2x_rule+v2x_civlib+v2x_neopat, data = df_s)
+lm2 <- lm(fatalities_log ~ n_protest_events_norm + n_protest_events_norm_lag_1 + n_protest_events_norm_lag_2 + n_protest_events_norm_lag_3 + cluster_1 + cluster_2 + cluster_3 + cluster_5 + fatalities_log_lag1+NY.GDP.PCAP.CD_log+SP.POP.TOTL_log+v2x_libdem+v2x_clphy+v2x_corr+v2x_rule+v2x_civlib+v2x_neopat, data = df_s)
 summary(lm2)
 
 lm3 <- lm(fatalities_log ~ n_protest_events_norm + n_protest_events_norm_lag_1 + n_protest_events_norm_lag_2 + n_protest_events_norm_lag_3 + fatalities_log_lag1 +NY.GDP.PCAP.CD_log+SP.POP.TOTL_log+v2x_libdem+v2x_clphy+v2x_corr+v2x_rule+v2x_civlib+v2x_neopat + as.factor(country), data = df_s)
@@ -43,7 +44,7 @@ summary(lm3)
 lm4 <- lm(fatalities_log ~ cluster_1 + cluster_2 + cluster_3 + cluster_5 + fatalities_log_lag1 +NY.GDP.PCAP.CD_log+SP.POP.TOTL_log+v2x_libdem+v2x_clphy+v2x_corr+v2x_rule+v2x_civlib+v2x_neopat+ as.factor(country), data = df_s)
 summary(lm4)
 
-lm5 <- lm(fatalities_log ~ n_protest_events_norm + n_protest_events_norm_lag_1 + n_protest_events_norm_lag_2 + n_protest_events_norm_lag_3 + cluster_1 + cluster_2 + cluster_3   + cluster_5 +fatalities_log_lag1  +NY.GDP.PCAP.CD_log+SP.POP.TOTL_log+v2x_libdem+v2x_clphy+v2x_corr+v2x_rule+v2x_civlib+v2x_neopat + as.factor(country), data = df_s)
+lm5 <- lm(fatalities_log ~ n_protest_events_norm + n_protest_events_norm_lag_1 + n_protest_events_norm_lag_2 + n_protest_events_norm_lag_3 + cluster_1 + cluster_2 + cluster_3 + cluster_5 +fatalities_log_lag1  +NY.GDP.PCAP.CD_log+SP.POP.TOTL_log+v2x_libdem+v2x_clphy+v2x_corr+v2x_rule+v2x_civlib+v2x_neopat + as.factor(country), data = df_s)
 summary(lm5)
 
 # Calculate clustered standard errors
@@ -68,9 +69,9 @@ cl_robust5 <- coeftest(lm5, vcov = clustered_se5)
 cl_robust5
 
 # F-test 
-f_test_lm1 <- linearHypothesis(lm2, c("cluster_11","cluster_21","cluster_31","cluster_51"), vcov = vcovHC(lm2, type = "HC0", cluster = ~ df$country))
-f_test_lm4 <- linearHypothesis(lm4, c("cluster_11","cluster_21","cluster_31","cluster_51"), vcov = vcovHC(lm4, type = "HC0", cluster = ~ df$country))
-f_test_lm5 <- linearHypothesis(lm5, c("cluster_11","cluster_21","cluster_31","cluster_51"), vcov = vcovHC(lm5, type = "HC0", cluster = ~ df$country))
+f_test_lm1 <- linearHypothesis(lm2, c("cluster_11","cluster_21","cluster_31","cluster_51"), vcov = vcovHC(lm2, type = "HC0", cluster = ~ df_s$country))
+f_test_lm4 <- linearHypothesis(lm4, c("cluster_11","cluster_21","cluster_31","cluster_51"), vcov = vcovHC(lm4, type = "HC0", cluster = ~ df_s$country))
+f_test_lm5 <- linearHypothesis(lm5, c("cluster_11","cluster_21","cluster_31","cluster_51"), vcov = vcovHC(lm5, type = "HC0", cluster = ~ df_s$country))
 
 add_stars <- function(p_value) {
   if (p_value < 0.001) {
