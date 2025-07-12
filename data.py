@@ -1204,7 +1204,7 @@ df = df[~df['country'].isin(["North Korea","Taiwan","Venezuela"])]
 
 # Save
 df.isnull().any()
-df.duplicated().any()
+print(df.duplicated().any())
 df=df.sort_values(by=["country","dd"])
 df.to_csv("data/df.csv")  
 
