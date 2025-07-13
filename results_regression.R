@@ -22,6 +22,7 @@ df$cluster_5<-as.factor(df$cluster_5)
 df$clusters_cen<-as.factor(df$clusters_cen)
 df$clusters_cen<-relevel(df$clusters_cen,ref="4")
 levels(df$clusters_cen)
+#df[is.na(df)] <- 0
 
 # Remove missing values
 MISSING <- is.na(df$n_protest_events_norm_lag_1 ) |

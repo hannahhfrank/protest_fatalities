@@ -160,7 +160,8 @@ ax2.text(1.92,0.01278, "***", fontsize=12)
 
 # Save
 plt.savefig("out/results_main_plot.eps",dpi=300,bbox_inches="tight")
-plt.savefig("/Users/hannahfrank/Dropbox/Apps/Overleaf/PhD_dissertation/out/results_main_plot2.eps",dpi=300,bbox_inches='tight')
+plt.savefig("/Users/hannahfrank/Dropbox/Apps/Overleaf/PhD_dissertation/out/results_main_plot.eps",dpi=300,bbox_inches='tight')
+plt.savefig("/Users/hannahfrank/Dropbox/Apps/Overleaf/protest_armed_conflict_diss/out/results_main_plot.eps",dpi=300,bbox_inches='tight')
 plt.show()
 
 ########################
@@ -238,6 +239,7 @@ for n,y,i,j in zip(["India","India","Philippines","Philippines","Somalia","Somal
 # Save
 plt.savefig("out/preds_best_select_ols.eps",dpi=300,bbox_inches="tight")
 plt.savefig("/Users/hannahfrank/Dropbox/Apps/Overleaf/PhD_dissertation/out/preds_best_select_ols.eps",dpi=300,bbox_inches='tight')
+plt.savefig("/Users/hannahfrank/Dropbox/Apps/Overleaf/protest_armed_conflict_diss/out/preds_best_select_ols.eps",dpi=300,bbox_inches='tight')
 plt.show()
 
 # (2) OLS: Plot poorly performing cases, Thailand, Niger, Nigeria
@@ -307,6 +309,7 @@ for n,y,i,j in zip(["Thailand","Thailand","Niger","Niger","Nigeria","Nigeria","N
 # Save
 plt.savefig("out/preds_worst_select_ols.eps",dpi=300,bbox_inches="tight")
 plt.savefig("/Users/hannahfrank/Dropbox/Apps/Overleaf/PhD_dissertation/out/preds_worst_select_ols.eps",dpi=300,bbox_inches='tight')
+plt.savefig("/Users/hannahfrank/Dropbox/Apps/Overleaf/protest_armed_conflict_diss/out/preds_worst_select_ols.eps",dpi=300,bbox_inches='tight')
 plt.show()
 
 # (3) RF: Plot well performing cases, India, Philippines, Somalia
@@ -374,6 +377,7 @@ for n,y,i,j in zip(["India","India","Philippines","Philippines","Somalia","Somal
 # Save
 plt.savefig("out/preds_best_select_rf.eps",dpi=300,bbox_inches="tight")
 plt.savefig("/Users/hannahfrank/Dropbox/Apps/Overleaf/PhD_dissertation/out/preds_best_select_rf.eps",dpi=300,bbox_inches='tight')
+plt.savefig("/Users/hannahfrank/Dropbox/Apps/Overleaf/protest_armed_conflict_diss/out/preds_best_select_rf.eps",dpi=300,bbox_inches='tight')
 plt.show()
 
 # (4) RF: Plot poorly performing cases, India, Philippines, Somalia
@@ -441,6 +445,7 @@ for n,y,i,j in zip(["Thailand","Thailand","Niger","Niger","Nigeria","Nigeria","N
 # Save
 plt.savefig("out/preds_worst_select_rf.eps",dpi=300,bbox_inches="tight")
 plt.savefig("/Users/hannahfrank/Dropbox/Apps/Overleaf/PhD_dissertation/out/preds_worst_select_rf.eps",dpi=300,bbox_inches='tight')
+plt.savefig("/Users/hannahfrank/Dropbox/Apps/Overleaf/protest_armed_conflict_diss/out/preds_worst_select_rf.eps",dpi=300,bbox_inches='tight')
 plt.show()
    
 ##########################################
@@ -512,6 +517,7 @@ plt.subplots_adjust(wspace=0.01)
 # Save
 plt.savefig("out/results_dang_shapes_ols_top.eps",dpi=300,bbox_inches="tight")
 plt.savefig("/Users/hannahfrank/Dropbox/Apps/Overleaf/PhD_dissertation/out/results_dang_shapes_ols_top.eps",dpi=300,bbox_inches='tight')
+plt.savefig("/Users/hannahfrank/Dropbox/Apps/Overleaf/protest_armed_conflict_diss/out/results_dang_shapes_ols_top.eps",dpi=300,bbox_inches='tight')
 plt.show()
 
 # Plot a random sample of harmless shapes, which have zero fatalities
@@ -538,6 +544,7 @@ plt.subplots_adjust(wspace=0.01)
 # Save
 plt.savefig("out/results_dang_shapes_ols_bottom.eps",dpi=300,bbox_inches="tight")
 plt.savefig("/Users/hannahfrank/Dropbox/Apps/Overleaf/PhD_dissertation/out/results_dang_shapes_ols_bottom.eps",dpi=300,bbox_inches='tight')
+plt.savefig("/Users/hannahfrank/Dropbox/Apps/Overleaf/protest_armed_conflict_diss/out/results_dang_shapes_ols_bottom.eps",dpi=300,bbox_inches='tight')
 plt.show()
 
 ### RF ###
@@ -591,6 +598,7 @@ plt.subplots_adjust(wspace=0.01)
 # Save
 plt.savefig("out/results_dang_shapes_rf_top.eps",dpi=300,bbox_inches="tight")
 plt.savefig("/Users/hannahfrank/Dropbox/Apps/Overleaf/PhD_dissertation/out/results_dang_shapes_rf_top.eps",dpi=300,bbox_inches='tight')
+plt.savefig("/Users/hannahfrank/Dropbox/Apps/Overleaf/protest_armed_conflict_diss/out/results_dang_shapes_rf_top.eps",dpi=300,bbox_inches='tight')
 plt.show()
 
 # Plot a random sample of harmless shapes, which have zero fatalities
@@ -617,6 +625,7 @@ plt.subplots_adjust(wspace=0.01)
 # Save
 plt.savefig("out/results_dang_shapes_rf_bottom.eps",dpi=300,bbox_inches="tight")
 plt.savefig("/Users/hannahfrank/Dropbox/Apps/Overleaf/PhD_dissertation/out/results_dang_shapes_rf_bottom.eps",dpi=300,bbox_inches='tight')
+plt.savefig("/Users/hannahfrank/Dropbox/Apps/Overleaf/protest_armed_conflict_diss/out/results_dang_shapes_rf_bottom.eps",dpi=300,bbox_inches='tight')
 plt.show()
 
 #########################################################
@@ -657,6 +666,7 @@ plt.tight_layout()
 # Save
 fig.savefig("out/covar_Egypt.eps",dpi=300,bbox_inches="tight")
 plt.savefig("/Users/hannahfrank/Dropbox/Apps/Overleaf/PhD_dissertation/out/covar_Egypt.eps",dpi=300,bbox_inches='tight')
+plt.savefig("/Users/hannahfrank/Dropbox/Apps/Overleaf/protest_armed_conflict_diss/out/covar_Egypt.eps",dpi=300,bbox_inches='tight')
 plt.show()
 
 # Make plot for Myanmar
@@ -689,6 +699,7 @@ plt.tight_layout()
 # Save
 fig.savefig("out/covar_Myanmar.eps",dpi=300,bbox_inches="tight")
 plt.savefig("/Users/hannahfrank/Dropbox/Apps/Overleaf/PhD_dissertation/out/covar_Myanmar.eps",dpi=300,bbox_inches='tight')
+plt.savefig("/Users/hannahfrank/Dropbox/Apps/Overleaf/protest_armed_conflict_diss/out/covar_Myanmar.eps",dpi=300,bbox_inches='tight')
 plt.show()
 
 ############################
@@ -747,6 +758,7 @@ plt.tight_layout()
 # Save
 plt.savefig("out/dtw1.eps",dpi=300,bbox_inches="tight")
 plt.savefig("/Users/hannahfrank/Dropbox/Apps/Overleaf/PhD_dissertation/out/dtw1.eps",dpi=300,bbox_inches='tight')
+plt.savefig("/Users/hannahfrank/Dropbox/Apps/Overleaf/protest_armed_conflict_diss/out/dtw1.eps",dpi=300,bbox_inches='tight')
 plt.show()
 
 # Plot cost matrix
@@ -777,6 +789,7 @@ plt.tight_layout()
 # Save
 plt.savefig("out/dtw2.eps",dpi=300,bbox_inches="tight")
 plt.savefig("/Users/hannahfrank/Dropbox/Apps/Overleaf/PhD_dissertation/out/dtw2.eps",dpi=300,bbox_inches='tight')
+plt.savefig("/Users/hannahfrank/Dropbox/Apps/Overleaf/protest_armed_conflict_diss/out/dtw2.eps",dpi=300,bbox_inches='tight')
 plt.show()
 
 # Verify with the library build in visualization tools
