@@ -10,6 +10,8 @@ from tslearn.barycenters import dtw_barycenter_averaging
 from tslearn.clustering import silhouette_score
 from scipy.spatial.distance import squareform
 import os 
+import warnings
+warnings.filterwarnings('ignore', category=FutureWarning)
 os.environ['PATH'] = "/Library/TeX/texbin:" + os.environ.get('PATH', '')
 mpl.rcParams['text.usetex'] = True
 mpl.rcParams['font.family'] = 'serif'
@@ -115,7 +117,7 @@ with open("data/ols_shapes_reg.json", 'r') as json_file:
 # Cluster the within country centroids
 score_test=-1
 for k in [3,5,7]:
-    
+        
     # Get centroids
     df_cen=pd.DataFrame()
     # For each country
@@ -144,7 +146,7 @@ for k in [3,5,7]:
     df_cen["clusters_cen"]=clusters
     
     # Silhouette score
-    score = silhouette_score(matrix_in, clusters,metric="dtw")
+    score = silhouette_score(matrix_in, clusters, metric="dtw")
     print(score)
     
     # If s score is larger than test score update results
@@ -175,6 +177,8 @@ for k in [3,5,7]:
         plt.tight_layout()
         plt.subplots_adjust(wspace=0.01)
         plt.savefig("out/clusters_clusters.eps",dpi=300,bbox_inches="tight")
+        plt.savefig("/Users/hannahfrank/Dropbox/Apps/Overleaf/PhD_dissertation/out/clusters_clusters.eps",dpi=300,bbox_inches='tight')
+        plt.savefig("/Users/hannahfrank/Dropbox/Apps/Overleaf/protest_armed_conflict_diss/out/clusters_clusters.eps",dpi=300,bbox_inches='tight')
         plt.show()
 
 

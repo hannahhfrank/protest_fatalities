@@ -72,9 +72,9 @@ for c in countries:
     ts=df["n_protest_events"].loc[df["country"]==c]
     Y=df["fatalities"].loc[df["country"]==c]
     X=df[["fatalities_norm_lag1",'NY.GDP.PCAP.CD_log','SP.POP.TOTL_log',"v2x_libdem","v2x_clphy","v2x_corr","v2x_rule","v2x_civlib","v2x_neopat"]].loc[df["country"]==c]
-   
+  
     # DRF
-    drf = general_dynamic_model(ts,Y,grid=grid,norm=True) 
+    drf = general_dynamic_model(ts,Y,grid=None,norm=True) 
     preds = pd.DataFrame(df["dd"].loc[df["country"]==c][-len(drf["actuals"]):])
     preds.columns = ["dd"]  
     preds["country"] = c
@@ -83,14 +83,14 @@ for c in countries:
     shapes_rf.update({f"drf_{c}":[drf["s"],drf["shapes"].tolist(),drf["clusters"].tolist()]})
            
     # DRFX
-    drfx = general_dynamic_model(ts,Y,X=X,norm=grid,grid=None)
+    drfx = general_dynamic_model(ts,Y,X=X,norm=True,grid=None)
     preds["preds_drfx"] = list(drfx["pred"])
     shapes_rf.update({f"drfx_{c}":[drfx["s"],drfx["shapes"].tolist(),drfx["clusters"].tolist()]})
     final_dynamic = pd.concat([final_dynamic, preds])
     final_dynamic.to_csv("data/preds_dynamic_nonlinear.csv")  
      
     # Linear
-    dOLS = general_dynamic_model(ts,Y,model_pred=Ridge(max_iter=5000),grid=grid_lasso,norm=True) 
+    dOLS = general_dynamic_model(ts,Y,model_pred=Ridge(max_iter=5000),grid=None,norm=True) 
     preds = pd.DataFrame(df["dd"].loc[df["country"]==c][-len(dOLS["actuals"]):])
     preds.columns = ["dd"]  
     preds["country"] = c
@@ -100,7 +100,7 @@ for c in countries:
     shapes_ols.update({f"dols_{c}":[dOLS["s"],dOLS["shapes"].tolist(),dOLS["clusters"].tolist()]})
            
     # Linear X
-    dOLSx = general_dynamic_model(ts,Y,X=X,model_pred=Ridge(max_iter=5000),grid=grid_lasso,norm=True)
+    dOLSx = general_dynamic_model(ts,Y,X=X,model_pred=Ridge(max_iter=5000),grid=None,norm=True)
     preds["preds_dolsx"] = list(dOLSx["pred"])
     shapes_ols.update({f"dolsx_{c}":[dOLSx["s"],dOLSx["shapes"].tolist(),dOLSx["clusters"].tolist()]})
     final_dynamic_linear = pd.concat([final_dynamic_linear, preds])

@@ -99,7 +99,8 @@ def linear_imp_grouped(df, group, vars_input):
     df_filled.columns = vars_input
     df_filled = df_filled.reset_index(drop=True)
     feat_complete = df.drop(columns=vars_input)
-    out = pd.concat([feat_complete.reset_index(drop=True), df_filled.reset_index(drop=True)], axis=1)
+    out = pd.concat([feat_complete, df_filled], axis=1)
+    out=out.reset_index(drop=True)
     
     return out
 
@@ -125,7 +126,11 @@ def general_model(ts, Y, model_pred=RandomForestRegressor(random_state=0),  X=No
         data_matrix = []
         for i in range(ar, len(ts) + 1):
             data_matrix.append(lags(ts.iloc[:i]))
-        in_put=pd.DataFrame(data_matrix,)
+        in_put=pd.DataFrame(data_matrix)
+        
+        # Set index to align with ts 
+        index=list(range(len(ts)-len(in_put), len(ts)))
+        in_put.set_index(pd.Index(index),inplace=True)
         
         # Add X variables if available 
         if X is not None:
@@ -142,7 +147,7 @@ def general_model(ts, Y, model_pred=RandomForestRegressor(random_state=0),  X=No
         # Reset index to avoid misalignment and 
         # crop output to the size of the input   
         output=Y.reset_index(drop=True)
-        output=Y.iloc[-len(in_put):]
+        output=output.iloc[-len(in_put):]
                     
         # Data split
         y_train = output[:-(len(ts)-int(0.7*len(ts)))]
@@ -202,7 +207,6 @@ def general_dynamic_model(ts, Y, model_pred=RandomForestRegressor(random_state=0
     min_test=np.inf
     for k in cluster_n:
         for w in w_length:
-            model.n_clusters=k
                 
             # Adapted from: https://github.com/ThomasSchinca/ShapeF/blob/Thomas_draft/functions.py
             # Get input matrix for training data 
@@ -370,7 +374,6 @@ def clustering(ts, model=TimeSeriesKMeans(n_clusters=5,metric="dtw",max_iter_bar
     score_test=-1
     for k in cluster_n:
         for w in w_length:
-            model.n_clusters=k
             
             # Adapted from: https://github.com/ThomasSchinca/ShapeF/blob/Thomas_draft/functions.py
             
@@ -383,6 +386,7 @@ def clustering(ts, model=TimeSeriesKMeans(n_clusters=5,metric="dtw",max_iter_bar
             seq_matrix_l=(seq_matrix_l-seq_matrix_l.min())/(seq_matrix_l.max()-seq_matrix_l.min())
             seq_matrix_l=seq_matrix_l.fillna(0) 
             seq_matrix_l=np.array(seq_matrix_l.T)
+            seq_matrix_l=seq_matrix_l.reshape(len(seq_matrix_l),w,1)
             
             # Cluster subsequences            
             model.n_clusters=k
