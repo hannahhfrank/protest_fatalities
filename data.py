@@ -262,7 +262,6 @@ country_dates={156:[2018,2023], # China, 710
                10:[2021,2023], # Antarctica --> not in GW, **remove**
                }
 
-
 # Make base df to merge events
 agg_month = agg_month.sort_values(by=["country","year","dd"])
 base=pd.DataFrame()
@@ -278,7 +277,7 @@ for i in range(0, len(countries)):
         s = pd.DataFrame(data=s,index=[0])
         base = pd.concat([base,s])  
 
-# Merge
+# Merge, the observations with na are filled with zero
 base = base.sort_values(by=["iso","dd"])
 base.reset_index(drop=True,inplace=True)
 base["dd"]=base["dd"].astype(str)
@@ -603,7 +602,8 @@ df=agg_month[["dd","year","gw_codes","country","n_protest_events","region"]]
                                 ############
                                 ### UCDP ###
                                 ############
-                                
+  
+# Load                            
 ucdp = pd.read_csv("https://ucdp.uu.se/downloads/ged/ged241-csv.zip",low_memory=False)
 ucdp.to_csv("data/ucdp.csv") 
 
@@ -611,6 +611,7 @@ ucdp.to_csv("data/ucdp.csv")
 ucdp_s = ucdp[(ucdp["type_of_violence"]==1)].copy(deep=True)
 u = ucdp_s[["dyad_name"]].drop_duplicates().reset_index(drop=True)
 
+# Remove government-government dyads
 ucdp_ss = ucdp_s.loc[(ucdp_s["dyad_name"] != "Government of Afghanistan - Government of United Kingdom, Government of United States of America") &
                     (ucdp_s["dyad_name"] != "Government of Cambodia (Kampuchea) - Government of Thailand") &
                     (ucdp_s["dyad_name"] != "Government of Cameroon - Government of Nigeria") &
@@ -660,7 +661,8 @@ df['fatalities'] = df['fatalities'].fillna(0)
                                     #############
                                     ### V-dem ###
                                     #############
-                                    
+  
+# Load and subset                                
 vdem = pd.read_csv("data/V-Dem-CY-Full+Others-v14.csv",low_memory=False)
 vdem_s=vdem[["year","country_name","v2x_polyarchy","v2x_libdem","v2x_partipdem","v2x_delibdem","v2x_egaldem","v2x_neopat","v2x_civlib","v2x_clphy","v2x_corr","v2x_rule"]]   
 vdem_s.columns=["year","country","v2x_polyarchy","v2x_libdem","v2x_partipdem","v2x_delibdem","v2x_egaldem","v2x_neopat","v2x_civlib","v2x_clphy","v2x_corr","v2x_rule"]                           
