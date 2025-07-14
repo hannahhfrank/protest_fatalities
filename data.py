@@ -1167,7 +1167,8 @@ base=pd.merge(left=base,right=wdi[["year","gw_codes","NY.GDP.PCAP.CD","SP.POP.TO
 
 # Impute missing values
 base_imp_final=linear_imp_grouped(base,"country",["NY.GDP.PCAP.CD"])
-base_imp_final=simple_imp_grouped(base_imp_final,"country",["NY.GDP.PCAP.CD"])
+base_imp_mean=simple_imp_grouped(base,"country",["NY.GDP.PCAP.CD"])
+base_imp_final["NY.GDP.PCAP.CD"] = base_imp_final["NY.GDP.PCAP.CD"].fillna(base_imp_mean["NY.GDP.PCAP.CD"])
 
 # check
 #for c in base.country.unique():
@@ -1187,7 +1188,8 @@ base=pd.merge(left=base,right=wdi[["year","gw_codes","NY.GDP.PCAP.CD","SP.POP.TO
 
 # Impute missing values
 base_imp_final=linear_imp_grouped(base,"country",["SP.POP.TOTL"])
-base_imp_final=simple_imp_grouped(base_imp_final,"country",["SP.POP.TOTL"])
+base_imp_mean=simple_imp_grouped(base,"country",["SP.POP.TOTL"])
+base_imp_final["SP.POP.TOTL"] = base_imp_final["SP.POP.TOTL"].fillna(base_imp_mean["SP.POP.TOTL"])
 
 # check
 #for c in base.country.unique():
@@ -1205,7 +1207,7 @@ df=pd.merge(df,base_imp_final[["year","gw_codes","SP.POP.TOTL"]],on=["year","gw_
 df = df[~df['country'].isin(["North Korea","Taiwan","Venezuela"])]
 
 # Save
-df.isnull().any()
+print(df.isnull().any())
 print(df.duplicated().any())
 df=df.sort_values(by=["country","dd"])
 df.to_csv("data/df.csv")  
