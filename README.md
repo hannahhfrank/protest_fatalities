@@ -1,7 +1,7 @@
 This repository contains the replication material for "From Protests to Fatalities: Identifying Dangerous Temporal Patterns in Civil Conflict Transitions".
 
 ## Requirements
-- The analysis is run in Python 3.12.3 and R version 4.3.1.
+- The analysis is run in Python 3.10.13 and R version 4.3.1.
 - The required python libraries are listed in requirements.txt
 
 ## Descriptions of files 
@@ -18,7 +18,7 @@ This repository contains the replication material for "From Protests to Fataliti
 First create a virtual environment, activate the environment and install the libraries. 
 
 ```
-conda create -n protest_fatalities python=3.12.3
+conda create -n protest_fatalities python=3.10.13
 conda activate protest_fatalities
 pip install -r requirements.txt
 ```
