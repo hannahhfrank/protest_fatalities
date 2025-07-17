@@ -1207,6 +1207,7 @@ df=pd.merge(df,base_imp_final[["year","gw_codes","SP.POP.TOTL"]],on=["year","gw_
 df = df[~df['country'].isin(["North Korea","Taiwan","Venezuela"])]
 
 # Save
+df=df.reset_index(drop=True)
 print(df.isnull().any())
 print(df.duplicated().any())
 df=df.sort_values(by=["country","dd"])
