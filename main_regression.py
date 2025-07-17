@@ -68,7 +68,7 @@ for c in countries:
     print(c)
     df_s=df.loc[df["country"]==c].copy()
     ts=df["n_protest_events"].loc[df["country"]==c]
-    
+
     # Get clusters for each country
     cluster_out = clustering(ts)
     
