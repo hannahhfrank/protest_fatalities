@@ -72,7 +72,7 @@ for c in countries:
     ts=df["n_protest_events"].loc[df["country"]==c]
     Y=df["fatalities"].loc[df["country"]==c]
     X=df[["fatalities_norm_lag1",'NY.GDP.PCAP.CD_log','SP.POP.TOTL_log',"v2x_libdem","v2x_clphy","v2x_corr","v2x_rule","v2x_civlib","v2x_neopat"]].loc[df["country"]==c]    
-            
+    
     # DRF
     drf = general_dynamic_model(ts,Y,grid=grid,norm=True) 
     preds = pd.DataFrame(df["dd"].loc[df["country"]==c][-len(drf["actuals"]):])
