@@ -83,7 +83,7 @@ for c in countries:
     shapes_rf.update({f"drf_{c}":[drf["s"],drf["shapes"].tolist(),drf["clusters"].tolist()]})
            
     # DRFX
-    drfx = general_dynamic_model(ts,Y,X=X,norm=True,grid=grid)
+    drfx = general_dynamic_model(ts,Y,X=X,grid=grid,norm=True)
     preds["preds_drfx"] = list(drfx["pred"])
     shapes_rf.update({f"drfx_{c}":[drfx["s"],drfx["shapes"].tolist(),drfx["clusters"].tolist()]})
     final_dynamic = pd.concat([final_dynamic, preds])
