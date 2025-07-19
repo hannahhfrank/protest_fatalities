@@ -23,14 +23,14 @@ conda activate protest_fatalities
 pip install -r requirements.txt
 ```
 
-The run the files after each other. This will take approximately 3 days.
+Then run the main files after each other. This will take approximately 6 hours.
 
 ```
 python main_prediction.py
 python main_regression.py
 ```
 
-The final results are produced by running. For the python script, make sure to comment out the out-paths leading to my Dropbox. For the Rscript, make sure to manually install the packages and set the working directory. 
+The final results are produced by running the results files. For the python script, make sure to comment out the out-paths leading to my Dropbox. For the Rscript, make sure to manually install the packages and set the working directory. 
 
  ```
 python results_predictions.py
