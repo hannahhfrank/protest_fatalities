@@ -9,7 +9,6 @@ import random
 from dtaidistance import dtw
 from dtaidistance import dtw_visualisation as dtwvis
 from scipy.stats import ttest_rel
-from matplotlib.gridspec import GridSpec
 random.seed(2)
 np.random.seed(42)
 import os 
@@ -69,10 +68,15 @@ df_linear["mse_olsx"]=((df_linear["fatalities"] - df_linear["preds_olsx"]) ** 2)
 df_linear["mse_dols"]=((df_linear["fatalities"] - df_linear["preds_dols"]) ** 2) 
 df_linear["mse_dolsx"]=((df_linear["fatalities"] - df_linear["preds_dolsx"]) ** 2) 
 
-print(df_linear["mse_ols"].mean())
-print(df_linear["mse_olsx"].mean())
-print(df_linear["mse_dols"].mean())
-print(df_linear["mse_dolsx"].mean())
+print(round(df_linear["mse_ols"].mean(),5))
+print(round(df_linear["mse_olsx"].mean(),5))
+print(round(df_linear["mse_dols"].mean(),5))
+print(round(df_linear["mse_dolsx"].mean(),5))
+
+print(round(df_linear["mse_ols"].std(),3))
+print(round(df_linear["mse_olsx"].std(),3))
+print(round(df_linear["mse_dols"].std(),3))
+print(round(df_linear["mse_dolsx"].std(),3))
 
 # t-test for paired samples on whether the means are equal 
 # https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.ttest_rel.html
@@ -92,10 +96,15 @@ df_nonlinear["mse_rfx"]=((df_nonlinear["fatalities"] - df_nonlinear["preds_rfx"]
 df_nonlinear["mse_drf"]=((df_nonlinear["fatalities"] - df_nonlinear["preds_drf"]) ** 2) 
 df_nonlinear["mse_drfx"]=((df_nonlinear["fatalities"] - df_nonlinear["preds_drfx"]) ** 2) 
 
-print(df_nonlinear["mse_rf"].mean())
-print(df_nonlinear["mse_rfx"].mean())
-print(df_nonlinear["mse_drf"].mean())
-print(df_nonlinear["mse_drfx"].mean())
+print(round(df_nonlinear["mse_rf"].mean(),5))
+print(round(df_nonlinear["mse_rfx"].mean(),5))
+print(round(df_nonlinear["mse_drf"].mean(),7))
+print(round(df_nonlinear["mse_drfx"].mean(),5))
+
+print(round(df_nonlinear["mse_rf"].std(),3))
+print(round(df_nonlinear["mse_rfx"].std(),3))
+print(round(df_nonlinear["mse_drf"].std(),3))
+print(round(df_nonlinear["mse_drfx"].std(),3))
 
 # t-test for paired samples on whether the means are equal 
 # https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.ttest_rel.html
@@ -107,56 +116,56 @@ print(round(ttest_rel(df_nonlinear["mse_rfx"], df_nonlinear["mse_drfx"])[1],5))
 fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(13, 7))
 
 # OLS in plot 1
-yerrs=[1.65 *(df_linear["mse_ols"].std()/np.sqrt(len(df_linear))),1.65 *(df_linear["mse_olsx"].std()/np.sqrt(len(df_linear))),1.65 *(df_linear["mse_dols"].std()/np.sqrt(len(df_linear))),1.65 *(df_linear["mse_dolsx"].std()/np.sqrt(len(df_linear)))]
-ax1.scatter([0,1,2,3], [df_linear["mse_ols"].mean(),df_linear["mse_olsx"].mean(),df_linear["mse_dols"].mean(),df_linear["mse_dolsx"].mean()],color="black",marker='o',s=50)
-ax1.errorbar([0,1,2,3], [df_linear["mse_ols"].mean(),df_linear["mse_olsx"].mean(),df_linear["mse_dols"].mean(),df_linear["mse_dolsx"].mean()], yerr=yerrs, color="black", linewidth=1, fmt='none')
+yerrs=[1.65 *(df_linear["mse_ols"].std()/np.sqrt(len(df_linear))),1.65 *(df_linear["mse_dols"].std()/np.sqrt(len(df_linear))),1.65 *(df_linear["mse_olsx"].std()/np.sqrt(len(df_linear))),1.65 *(df_linear["mse_dolsx"].std()/np.sqrt(len(df_linear)))]
+ax1.scatter([0,1,2,3], [df_linear["mse_ols"].mean(),df_linear["mse_dols"].mean(),df_linear["mse_olsx"].mean(),df_linear["mse_dolsx"].mean()],color="black",marker='o',s=50)
+ax1.errorbar([0,1,2,3], [df_linear["mse_ols"].mean(),df_linear["mse_dols"].mean(),df_linear["mse_olsx"].mean(),df_linear["mse_dolsx"].mean()], yerr=yerrs, color="black", linewidth=1, fmt='none')
 ax1.grid(False)
 ax1.set_ylim(0.008,0.018)
 ax1.set_yticks([0.008,0.009,0.01,0.011,0.012,0.013,0.014,0.015,0.016,0.017,0.018],[0.008,0.009,0.01,0.011,0.012,0.013,0.014,0.015,0.016,0.017,0.018],fontsize=18)
 ax1.set_ylabel("Mean squared error (MSE)",size=22)
-ax1.set_xticks([0,1,2,3],['RR','RRX','DRR','DRRX'],fontsize=18)
+ax1.set_xticks([0,1,2,3],['RR','DRR','RRX','DRRX'],fontsize=18)
 
 # RF in plot 2
-yerrs=[1.65 *(df_nonlinear["mse_rf"].std()/np.sqrt(len(df_nonlinear))),1.65 *(df_nonlinear["mse_rfx"].std()/np.sqrt(len(df_nonlinear))),1.65 *(df_nonlinear["mse_drf"].std()/np.sqrt(len(df_nonlinear))),1.65 *(df_nonlinear["mse_drfx"].std()/np.sqrt(len(df_nonlinear)))]
-ax2.scatter([0,1,2,3], [df_nonlinear["mse_rf"].mean(),df_nonlinear["mse_rfx"].mean(),df_nonlinear["mse_drf"].mean(),df_nonlinear["mse_drfx"].mean()], color="black", marker='o',s=50)
-ax2.errorbar([0,1,2,3], [df_nonlinear["mse_rf"].mean(),df_nonlinear["mse_rfx"].mean(),df_nonlinear["mse_drf"].mean(),df_nonlinear["mse_drfx"].mean()], yerr=yerrs, color="black", linewidth=1, fmt='none')
+yerrs=[1.65 *(df_nonlinear["mse_rf"].std()/np.sqrt(len(df_nonlinear))),1.65 *(df_nonlinear["mse_drf"].std()/np.sqrt(len(df_nonlinear))),1.65 *(df_nonlinear["mse_rfx"].std()/np.sqrt(len(df_nonlinear))),1.65 *(df_nonlinear["mse_drfx"].std()/np.sqrt(len(df_nonlinear)))]
+ax2.scatter([0,1,2,3], [df_nonlinear["mse_rf"].mean(),df_nonlinear["mse_drf"].mean(),df_nonlinear["mse_rfx"].mean(),df_nonlinear["mse_drfx"].mean()], color="black", marker='o',s=50)
+ax2.errorbar([0,1,2,3], [df_nonlinear["mse_rf"].mean(),df_nonlinear["mse_drf"].mean(),df_nonlinear["mse_rfx"].mean(),df_nonlinear["mse_drfx"].mean()], yerr=yerrs, color="black", linewidth=1, fmt='none')
 ax2.grid(False)
 ax2.set_ylim(0.006,0.013)
 ax2.set_yticks([0.006,0.007,0.008,0.009,0.01,0.011,0.012,0.013],[0.006,0.007,0.008,0.009,0.01,0.011,0.012,0.013],size=18)
 ax2.yaxis.set_ticks_position('right')
-ax2.set_xticks([0,1,2,3],['RF','RFX','DRF','DRFX'],fontsize=18)
+ax2.set_xticks([0,1,2,3],['RF','DRF','RFX','DRFX'],fontsize=18)
 plt.subplots_adjust(wspace=0.05)
 
 # Manually add results for the t-test
-ax1.plot([0,1],[0.0125,0.0125],linewidth=0.5,color="black")
-ax1.plot([0,0],[0.0125,0.0126],linewidth=0.5,color="black")
-ax1.plot([1,1],[0.0125,0.0126],linewidth=0.5,color="black")
-ax1.text(0.47, 0.01225, "x", fontsize=12)
+ax1.plot([0,2],[0.0161,0.0161],linewidth=0.5,color="black")
+ax1.plot([0,0],[0.0161,0.016],linewidth=0.5,color="black")
+ax1.plot([2,2],[0.0161,0.016],linewidth=0.5,color="black")
+ax1.text(0.92, 0.0162, "x", fontsize=12)
 
-ax1.plot([0,2],[0.0108,0.0108],linewidth=0.5,color="black")
-ax1.plot([0,0],[0.0108,0.0109],linewidth=0.5,color="black")
-ax1.plot([2,2],[0.0108,0.0109],linewidth=0.5,color="black")
-ax1.text(0.92, 0.01045, "***", fontsize=12)
+ax1.plot([0,1],[0.0099,0.0099],linewidth=0.5,color="black")
+ax1.plot([0,0],[0.0099,0.01],linewidth=0.5,color="black")
+ax1.plot([1,1],[0.0099,0.01],linewidth=0.5,color="black")
+ax1.text(0.42, 0.0096, "***", fontsize=12)
 
-ax1.plot([1,3],[0.0173,0.0173],linewidth=0.5,color="black")
-ax1.plot([1,1],[0.0173,0.0172],linewidth=0.5,color="black")
-ax1.plot([3,3],[0.0173,0.0172],linewidth=0.5,color="black")
-ax1.text(1.92, 0.01729, "***", fontsize=12)
+ax1.plot([2,3],[0.0097,0.0097],linewidth=0.5,color="black")
+ax1.plot([2,2],[0.0097,0.0098],linewidth=0.5,color="black")
+ax1.plot([3,3],[0.0097,0.0098],linewidth=0.5,color="black")
+ax1.text(2.42, 0.00939, "***", fontsize=12)
 
-ax2.plot([0,1],[0.0092,0.0092],linewidth=0.5,color="black")
-ax2.plot([0,0],[0.0092,0.0093],linewidth=0.5,color="black")
-ax2.plot([1,1],[0.0092,0.0093],linewidth=0.5,color="black")
-ax2.text(0.42,0.0089, "***", fontsize=12)
+ax2.plot([0,2],[0.0122,0.0122],linewidth=0.5,color="black")
+ax2.plot([0,0],[0.0122,0.01213],linewidth=0.5,color="black")
+ax2.plot([2,2],[0.0122,0.01213],linewidth=0.5,color="black")
+ax2.text(0.92,0.0122, "***", fontsize=12)
 
-ax2.plot([0,2],[0.0085,0.0085],linewidth=0.5,color="black")
-ax2.plot([0,0],[0.0085,0.0086],linewidth=0.5,color="black")
-ax2.plot([2,2],[0.0085,0.0086],linewidth=0.5,color="black")
-ax2.text(0.91,0.00821, "***", fontsize=12)
+ax2.plot([0,1],[0.0086,0.0086],linewidth=0.5,color="black")
+ax2.plot([0,0],[0.0086,0.00867],linewidth=0.5,color="black")
+ax2.plot([1,1],[0.0086,0.00867],linewidth=0.5,color="black")
+ax2.text(0.42,0.00839, "***", fontsize=12)
 
-ax2.plot([1,3],[0.0128,0.0128],linewidth=0.5,color="black")
-ax2.plot([1,1],[0.0128,0.0127],linewidth=0.5,color="black")
-ax2.plot([3,3],[0.0128,0.0127],linewidth=0.5,color="black")
-ax2.text(1.92,0.01278, "***", fontsize=12)
+ax2.plot([2,3],[0.00746,0.00746],linewidth=0.5,color="black")
+ax2.plot([2,2],[0.00746,0.00753],linewidth=0.5,color="black")
+ax2.plot([3,3],[0.00746,0.00753],linewidth=0.5,color="black")
+ax2.text(2.42,0.00725, "***", fontsize=12)
 
 # Save
 plt.savefig("out/results_main_plot.eps",dpi=300,bbox_inches="tight")
@@ -164,290 +173,6 @@ plt.savefig("/Users/hannahfrank/Dropbox/Apps/Overleaf/PhD_dissertation/out/resul
 plt.savefig("/Users/hannahfrank/Dropbox/Apps/Overleaf/protest_armed_conflict_diss/out/results_main_plot.eps",dpi=300,bbox_inches='tight')
 plt.show()
 
-########################
-### Prediction plots ###
-########################
-
-# Load predictions
-df_linear = pd.read_csv("data/df_linear.csv",index_col=0)
-df_linear['year'] = df_linear['dd'].str[:4]
-df_nonlinear =  pd.read_csv("data/df_nonlinear.csv",index_col=0)
-df_nonlinear['year'] = df_nonlinear['dd'].str[:4]
-
-# (1) OLS: Plot well performing cases, India, Philippines, Somalia
-
-# Initiate plot
-fig = plt.figure(figsize=(10, 13))
-grid = GridSpec(4, 2, figure=fig, wspace=0.05, hspace=0.4)
-
-# Fill each subplot of figure
-for n,y,i,j in zip(["India","India","Philippines","Philippines","Somalia","Somalia","Somalia","Somalia"],[2022,2023,2022,2023,2018,2019,2020,2021],[0,0,1,1,2,2,3,3],[0,1,0,1,0,1,0,1]):
-    
-    # Define subplot
-    ax = fig.add_subplot(grid[i, j])
-    
-    # Add actuals and predictions
-    plt.plot(df_linear["dd"].loc[(df_linear["country"]==n)&(df_linear["dd"]>=f"{y}-01")&(df_linear["dd"]<=f"{y}-12")],df_linear["fatalities"].loc[(df_linear["country"]==n)&(df_linear["dd"]>=f"{y}-01")&(df_linear["dd"]<=f"{y}-12")],linestyle="solid",color="black",linewidth=1)
-    plt.plot(df_linear["dd"].loc[(df_linear["country"]==n)&(df_linear["dd"]>=f"{y}-01")&(df_linear["dd"]<=f"{y}-12")],df_linear["preds_ols"].loc[(df_linear["country"]==n)&(df_linear["dd"]>=f"{y}-01")&(df_linear["dd"]<=f"{y}-12")],linestyle="dotted",color="black",linewidth=1)
-    plt.plot(df_linear["dd"].loc[(df_linear["country"]==n)&(df_linear["dd"]>=f"{y}-01")&(df_linear["dd"]<=f"{y}-12")],df_linear["preds_dolsx"].loc[(df_linear["country"]==n)&(df_linear["dd"]>=f"{y}-01")&(df_linear["dd"]<=f"{y}-12")],linestyle="dashed",color="black",linewidth=1)
-   
-    # Add y ticks
-    if y==2023:
-        plt.xticks(["2023-01","2023-03","2023-05","2023-07","2023-09","2023-11"],["01-23","03-23","05-23","07-23","09-23","11-23"],fontsize=15)
-    elif y==2022:
-        plt.xticks(["2022-01","2022-03","2022-05","2022-07","2022-09","2022-11"],["01-22","03-22","05-22","07-22","09-22","11-22"],fontsize=15)
-    elif y==2021:
-        plt.xticks(["2021-01","2021-03","2021-05","2021-07","2021-09","2021-11"],["01-21","03-21","05-21","07-21","09-21","11-21"],fontsize=15)
-    elif y==2020:
-        plt.xticks(["2020-01","2020-03","2020-05","2020-07","2020-09","2020-11"],["01-20","03-20","05-20","07-20","09-20","11-20"],fontsize=15)
-    elif y==2019:
-        plt.xticks(["2019-01","2019-03","2019-05","2019-07","2019-09","2019-11"],["01-19","03-19","05-19","07-19","09-19","11-19"],fontsize=15)
-    elif y==2018:
-        plt.xticks(["2018-01","2018-03","2018-05","2018-07","2018-09","2018-11"],["01-18","03-18","05-18","07-18","09-18","11-18"],fontsize=15)
-    elif y==2017:
-        plt.xticks(["2017-01","2017-03","2017-05","2017-07","2017-09","2017-11"],["01-17","03-17","05-17","07-17","09-17","11-17"],fontsize=15)
-    elif y==2016:
-        plt.xticks(["2016-01","2016-03","2016-05","2016-07","2016-09","2016-11"],["01-16","03-16","05-16","07-16","09-16","11-16"],fontsize=15) 
-    
-    # Add x ticks
-    if i==0:
-        plt.yticks([0,0.1,0.2,0.3,0.4,0.5,0.6],[0,0.1,0.2,0.3,0.4,0.5,0.6],fontsize=15) 
-    if i==1:
-        plt.yticks([0,0.1,0.2,0.3,0.4,0.5],[0,0.1,0.2,0.3,0.4,0.5],fontsize=15) 
-    if i==2:
-        plt.yticks([0,0.1,0.2,0.3,0.4,0.5,0.6,0.7],[0,0.1,0.2,0.3,0.4,0.5,0.6,0.7],fontsize=15)       
-    if i==3:
-        plt.yticks([0,0.1,0.2,0.3,0.4,0.5,0.6,0.7],[0,0.1,0.2,0.3,0.4,0.5,0.6,0.7],fontsize=15)   
-
-    # Only include x and y axis
-    ax.spines['top'].set_visible(False)
-    ax.spines['right'].set_visible(False)
-    
-    # In second column of subplot
-    if j==1:
-        # Remove y axis as well
-        ax.spines['left'].set_visible(False)
-        ax.set_yticks([])
-        # Manually place title in the middle of the two columns
-        if n=="India":
-            plt.text(-2, 0.6, n, fontsize=20)
-        elif n=="Philippines":
-            plt.text(-3, 0.5, n, fontsize=20)
-        elif n=="Somalia":
-            plt.text(-2.9, 0.7, n, fontsize=20)
-
-# Save
-plt.savefig("out/preds_best_select_ols.eps",dpi=300,bbox_inches="tight")
-plt.savefig("/Users/hannahfrank/Dropbox/Apps/Overleaf/PhD_dissertation/out/preds_best_select_ols.eps",dpi=300,bbox_inches='tight')
-plt.savefig("/Users/hannahfrank/Dropbox/Apps/Overleaf/protest_armed_conflict_diss/out/preds_best_select_ols.eps",dpi=300,bbox_inches='tight')
-plt.show()
-
-# (2) OLS: Plot poorly performing cases, Thailand, Niger, Nigeria
-
-# Initiate plot
-fig = plt.figure(figsize=(10, 13))
-grid = GridSpec(4, 2, figure=fig, wspace=0.05, hspace=0.4)
-
-# Fill each subplot of figure
-for n,y,i,j in zip(["Thailand","Thailand","Niger","Niger","Nigeria","Nigeria","Nigeria","Nigeria"],[2022,2023,2017,2018,2016,2017,2018,2019],[0,0,1,1,2,2,3,3],[0,1,0,1,0,1,0,1]):
-    
-    # Define subplot    
-    ax = fig.add_subplot(grid[i, j])
-    
-    # Add actuals and predictions    
-    plt.plot(df_linear["dd"].loc[(df_linear["country"]==n)&(df_linear["dd"]>=f"{y}-01")&(df_linear["dd"]<=f"{y}-12")],df_linear["fatalities"].loc[(df_linear["country"]==n)&(df_linear["dd"]>=f"{y}-01")&(df_linear["dd"]<=f"{y}-12")],linestyle="solid",color="black",linewidth=1)
-    plt.plot(df_linear["dd"].loc[(df_linear["country"]==n)&(df_linear["dd"]>=f"{y}-01")&(df_linear["dd"]<=f"{y}-12")],df_linear["preds_ols"].loc[(df_linear["country"]==n)&(df_linear["dd"]>=f"{y}-01")&(df_linear["dd"]<=f"{y}-12")],linestyle="dotted",color="black",linewidth=1)
-    plt.plot(df_linear["dd"].loc[(df_linear["country"]==n)&(df_linear["dd"]>=f"{y}-01")&(df_linear["dd"]<=f"{y}-12")],df_linear["preds_dolsx"].loc[(df_linear["country"]==n)&(df_linear["dd"]>=f"{y}-01")&(df_linear["dd"]<=f"{y}-12")],linestyle="dashed",color="black",linewidth=1)
-
-    # Add y ticks
-    if y==2023:
-        plt.xticks(["2023-01","2023-03","2023-05","2023-07","2023-09","2023-11"],["01-23","03-23","05-23","07-23","09-23","11-23"],fontsize=15)
-    elif y==2022:
-        plt.xticks(["2022-01","2022-03","2022-05","2022-07","2022-09","2022-11"],["01-22","03-22","05-22","07-22","09-22","11-22"],fontsize=15)
-    elif y==2021:
-        plt.xticks(["2021-01","2021-03","2021-05","2021-07","2021-09","2021-11"],["01-21","03-21","05-21","07-21","09-21","11-21"],fontsize=15)
-    elif y==2020:
-        plt.xticks(["2020-01","2020-03","2020-05","2020-07","2020-09","2020-11"],["01-20","03-20","05-20","07-20","09-20","11-20"],fontsize=15)
-    elif y==2017:
-        plt.xticks(["2017-01","2017-03","2017-05","2017-07","2017-09","2017-11"],["01-17","03-17","05-17","07-17","09-17","11-17"],fontsize=15)
-    elif y==2018:
-        plt.xticks(["2018-01","2018-03","2018-05","2018-07","2018-09","2018-11"],["01-18","03-18","05-18","07-18","09-18","11-18"],fontsize=15)
-    elif y==2016:
-        plt.xticks(["2016-01","2016-03","2016-05","2016-07","2016-09","2016-11"],["01-16","03-16","05-16","07-16","09-16","11-16"],fontsize=15)
-    elif y==2019:
-        plt.xticks(["2019-01","2019-03","2019-05","2019-07","2019-09","2019-11"],["01-19","03-19","05-19","07-19","09-19","11-19"],fontsize=15)
-
-    # Add x ticks
-    if i==0:
-        plt.yticks([0,0.1,0.2,0.3,0.4,0.5],[0,0.1,0.2,0.3,0.4,0.5],fontsize=15) 
-    if i==1:
-        plt.yticks([0,0.1,0.2,0.3,0.4],[0,0.1,0.2,0.3,0.4],fontsize=15) 
-    if i==2:
-        plt.yticks([0,0.1,0.2,0.3,0.4,0.5],[0,0.1,0.2,0.3,0.4,0.5],fontsize=15)       
-    if i==3:
-        plt.yticks([0,0.1,0.2,0.3,0.4],[0,0.1,0.2,0.3,0.4],fontsize=15)       
-
-    # Only include x and y axis
-    ax.spines['top'].set_visible(False)
-    ax.spines['right'].set_visible(False)
-    
-    # In second column of subplot
-    if j==1:
-        # Remove y axis as well
-        ax.spines['left'].set_visible(False)
-        ax.set_yticks([])
-        # Manually place title in the middle of the two columns
-        if n=="Thailand":
-            plt.text(-2.9, 0.5, n, fontsize=20)
-        elif n=="Niger":
-            plt.text(-2.5, 0.4, n, fontsize=20)
-        elif (n=="Nigeria")&(i==2):
-            plt.text(-2.7, 0.5, n, fontsize=20)
-        elif (n=="Nigeria")&(i==3):
-            plt.text(-2.7, 0.4, n, fontsize=20)
-
-# Save
-plt.savefig("out/preds_worst_select_ols.eps",dpi=300,bbox_inches="tight")
-plt.savefig("/Users/hannahfrank/Dropbox/Apps/Overleaf/PhD_dissertation/out/preds_worst_select_ols.eps",dpi=300,bbox_inches='tight')
-plt.savefig("/Users/hannahfrank/Dropbox/Apps/Overleaf/protest_armed_conflict_diss/out/preds_worst_select_ols.eps",dpi=300,bbox_inches='tight')
-plt.show()
-
-# (3) RF: Plot well performing cases, India, Philippines, Somalia
-
-# Initiate plot
-fig = plt.figure(figsize=(10, 13))
-grid = GridSpec(4, 2, figure=fig, wspace=0.05, hspace=0.4)
-
-# Fill each subplot of figure
-for n,y,i,j in zip(["India","India","Philippines","Philippines","Somalia","Somalia","Somalia","Somalia"],[2022,2023,2022,2023,2018,2019,2020,2021],[0,0,1,1,2,2,3,3],[0,1,0,1,0,1,0,1]):
-    
-    # Define subplot    
-    ax = fig.add_subplot(grid[i, j])
-    
-    # Add actuals and predictions        
-    plt.plot(df_nonlinear["dd"].loc[(df_nonlinear["country"]==n)&(df_nonlinear["dd"]>=f"{y}-01")&(df_nonlinear["dd"]<=f"{y}-12")],df_nonlinear["fatalities"].loc[(df_nonlinear["country"]==n)&(df_nonlinear["dd"]>=f"{y}-01")&(df_nonlinear["dd"]<=f"{y}-12")],linestyle="solid",color="black",linewidth=1)
-    plt.plot(df_nonlinear["dd"].loc[(df_nonlinear["country"]==n)&(df_nonlinear["dd"]>=f"{y}-01")&(df_nonlinear["dd"]<=f"{y}-12")],df_nonlinear["preds_rf"].loc[(df_nonlinear["country"]==n)&(df_nonlinear["dd"]>=f"{y}-01")&(df_nonlinear["dd"]<=f"{y}-12")],linestyle="dotted",color="black",linewidth=1)
-    plt.plot(df_nonlinear["dd"].loc[(df_nonlinear["country"]==n)&(df_nonlinear["dd"]>=f"{y}-01")&(df_nonlinear["dd"]<=f"{y}-12")],df_nonlinear["preds_drfx"].loc[(df_nonlinear["country"]==n)&(df_nonlinear["dd"]>=f"{y}-01")&(df_nonlinear["dd"]<=f"{y}-12")],linestyle="dashed",color="black",linewidth=1)
-
-    # Add y ticks
-    if y==2023:
-        plt.xticks(["2023-01","2023-03","2023-05","2023-07","2023-09","2023-11"],["01-23","03-23","05-23","07-23","09-23","11-23"],fontsize=15)
-    elif y==2022:
-        plt.xticks(["2022-01","2022-03","2022-05","2022-07","2022-09","2022-11"],["01-22","03-22","05-22","07-22","09-22","11-22"],fontsize=15)
-    elif y==2021:
-        plt.xticks(["2021-01","2021-03","2021-05","2021-07","2021-09","2021-11"],["01-21","03-21","05-21","07-21","09-21","11-21"],fontsize=15)
-    elif y==2020:
-        plt.xticks(["2020-01","2020-03","2020-05","2020-07","2020-09","2020-11"],["01-20","03-20","05-20","07-20","09-20","11-20"],fontsize=15)
-    elif y==2019:
-        plt.xticks(["2019-01","2019-03","2019-05","2019-07","2019-09","2019-11"],["01-19","03-19","05-19","07-19","09-19","11-19"],fontsize=15)
-    elif y==2018:
-        plt.xticks(["2018-01","2018-03","2018-05","2018-07","2018-09","2018-11"],["01-18","03-18","05-18","07-18","09-18","11-18"],fontsize=15)
-    elif y==2017:
-        plt.xticks(["2017-01","2017-03","2017-05","2017-07","2017-09","2017-11"],["01-17","03-17","05-17","07-17","09-17","11-17"],fontsize=15)
-    elif y==2016:
-        plt.xticks(["2016-01","2016-03","2016-05","2016-07","2016-09","2016-11"],["01-16","03-16","05-16","07-16","09-16","11-16"],fontsize=15) 
-
-    # Add x ticks
-    if i==0:
-        plt.yticks([0,0.1,0.2,0.3,0.4,0.5,0.6],[0,0.1,0.2,0.3,0.4,0.5,0.6],fontsize=15) 
-    if i==1:
-        plt.yticks([0,0.1,0.2,0.3,0.4,0.5],[0,0.1,0.2,0.3,0.4,0.5],fontsize=15) 
-    if i==2:
-        plt.yticks([0,0.1,0.2,0.3,0.4,0.5,0.6,0.7],[0,0.1,0.2,0.3,0.4,0.5,0.6,0.7],fontsize=15)       
-    if i==3:
-        plt.yticks([0,0.1,0.2,0.3,0.4,0.5,0.6,0.7],[0,0.1,0.2,0.3,0.4,0.5,0.6,0.7],fontsize=15)   
-
-    # Only include x and y axis
-    ax.spines['top'].set_visible(False)
-    ax.spines['right'].set_visible(False)
-    
-    # In second column of subplot
-    if j==1:
-        # Remove y axis as well
-        ax.spines['left'].set_visible(False)
-        ax.set_yticks([])
-        # Manually place title in the middle of the two columns
-        if n=="India":
-            plt.text(-2, 0.6, n, fontsize=20)
-        elif n=="Philippines":
-            plt.text(-3, 0.5, n, fontsize=20)
-        elif n=="Somalia":
-            plt.text(-2.9, 0.7, n, fontsize=20)
-
-# Save
-plt.savefig("out/preds_best_select_rf.eps",dpi=300,bbox_inches="tight")
-plt.savefig("/Users/hannahfrank/Dropbox/Apps/Overleaf/PhD_dissertation/out/preds_best_select_rf.eps",dpi=300,bbox_inches='tight')
-plt.savefig("/Users/hannahfrank/Dropbox/Apps/Overleaf/protest_armed_conflict_diss/out/preds_best_select_rf.eps",dpi=300,bbox_inches='tight')
-plt.show()
-
-# (4) RF: Plot poorly performing cases, India, Philippines, Somalia
-
-# Initiate plot
-fig = plt.figure(figsize=(10, 13))
-grid = GridSpec(4, 2, figure=fig, wspace=0.05, hspace=0.4)
-
-# Fill each subplot of figure
-for n,y,i,j in zip(["Thailand","Thailand","Niger","Niger","Nigeria","Nigeria","Nigeria","Nigeria"],[2022,2023,2017,2018,2016,2017,2018,2019],[0,0,1,1,2,2,3,3],[0,1,0,1,0,1,0,1]):
-    
-    # Define subplot    
-    ax = fig.add_subplot(grid[i, j])
-    
-    # Add actuals and predictions            
-    plt.plot(df_nonlinear["dd"].loc[(df_nonlinear["country"]==n)&(df_nonlinear["dd"]>=f"{y}-01")&(df_nonlinear["dd"]<=f"{y}-12")],df_nonlinear["fatalities"].loc[(df_nonlinear["country"]==n)&(df_nonlinear["dd"]>=f"{y}-01")&(df_nonlinear["dd"]<=f"{y}-12")],linestyle="solid",color="black",linewidth=1)
-    plt.plot(df_nonlinear["dd"].loc[(df_nonlinear["country"]==n)&(df_nonlinear["dd"]>=f"{y}-01")&(df_nonlinear["dd"]<=f"{y}-12")],df_nonlinear["preds_rf"].loc[(df_nonlinear["country"]==n)&(df_nonlinear["dd"]>=f"{y}-01")&(df_nonlinear["dd"]<=f"{y}-12")],linestyle="dotted",color="black",linewidth=1)
-    plt.plot(df_nonlinear["dd"].loc[(df_nonlinear["country"]==n)&(df_nonlinear["dd"]>=f"{y}-01")&(df_nonlinear["dd"]<=f"{y}-12")],df_nonlinear["preds_drfx"].loc[(df_nonlinear["country"]==n)&(df_nonlinear["dd"]>=f"{y}-01")&(df_nonlinear["dd"]<=f"{y}-12")],linestyle="dashed",color="black",linewidth=1)
-   
-    # Add y ticks
-    if y==2023:
-        plt.xticks(["2023-01","2023-03","2023-05","2023-07","2023-09","2023-11"],["01-23","03-23","05-23","07-23","09-23","11-23"],fontsize=15)
-    elif y==2022:
-        plt.xticks(["2022-01","2022-03","2022-05","2022-07","2022-09","2022-11"],["01-22","03-22","05-22","07-22","09-22","11-22"],fontsize=15)
-    elif y==2021:
-        plt.xticks(["2021-01","2021-03","2021-05","2021-07","2021-09","2021-11"],["01-21","03-21","05-21","07-21","09-21","11-21"],fontsize=15)
-    elif y==2020:
-        plt.xticks(["2020-01","2020-03","2020-05","2020-07","2020-09","2020-11"],["01-20","03-20","05-20","07-20","09-20","11-20"],fontsize=15)
-    elif y==2017:
-        plt.xticks(["2017-01","2017-03","2017-05","2017-07","2017-09","2017-11"],["01-17","03-17","05-17","07-17","09-17","11-17"],fontsize=15)
-    elif y==2018:
-        plt.xticks(["2018-01","2018-03","2018-05","2018-07","2018-09","2018-11"],["01-18","03-18","05-18","07-18","09-18","11-18"],fontsize=15)
-    elif y==2016:
-        plt.xticks(["2016-01","2016-03","2016-05","2016-07","2016-09","2016-11"],["01-16","03-16","05-16","07-16","09-16","11-16"],fontsize=15)
-    elif y==2019:
-        plt.xticks(["2019-01","2019-03","2019-05","2019-07","2019-09","2019-11"],["01-19","03-19","05-19","07-19","09-19","11-19"],fontsize=15)
-
-    # Add x ticks
-    if i==0:
-        plt.yticks([0,0.1,0.2,0.3,0.4,0.5],[0,0.1,0.2,0.3,0.4,0.5],fontsize=15) 
-    if i==1:
-        plt.yticks([0,0.1,0.2,0.3,0.4],[0,0.1,0.2,0.3,0.4],fontsize=15) 
-    if i==2:
-        plt.yticks([0,0.1,0.2,0.3,0.4,0.5],[0,0.1,0.2,0.3,0.4,0.5],fontsize=15)       
-    if i==3:
-        plt.yticks([0,0.1,0.2,0.3,0.4],[0,0.1,0.2,0.3,0.4],fontsize=15)       
-
-    # Only include x and y axis
-    ax.spines['top'].set_visible(False)
-    ax.spines['right'].set_visible(False)
-    if j==1:
-        # Remove y axis as well
-        ax.spines['left'].set_visible(False)
-        ax.set_yticks([])
-        # Manually place title in the middle of the two columns
-        if n=="Thailand":
-            plt.text(-2.9, 0.5, n, fontsize=20)
-        elif n=="Niger":
-            plt.text(-2.5, 0.4, n, fontsize=20)
-        elif (n=="Nigeria")&(i==2):
-            plt.text(-2.7, 0.5, n, fontsize=20)
-        elif (n=="Nigeria")&(i==3):
-            plt.text(-2.7, 0.4, n, fontsize=20)
-
-# Save
-plt.savefig("out/preds_worst_select_rf.eps",dpi=300,bbox_inches="tight")
-plt.savefig("/Users/hannahfrank/Dropbox/Apps/Overleaf/PhD_dissertation/out/preds_worst_select_rf.eps",dpi=300,bbox_inches='tight')
-plt.savefig("/Users/hannahfrank/Dropbox/Apps/Overleaf/protest_armed_conflict_diss/out/preds_worst_select_rf.eps",dpi=300,bbox_inches='tight')
-plt.show()
-   
 ##########################################
 ### Plot dangerous and harmless shapes ###                                                                                                                           
 ##########################################
