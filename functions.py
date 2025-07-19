@@ -1,11 +1,10 @@
 import pandas as pd
-from sklearn.model_selection import RandomizedSearchCV,GridSearchCV
+from sklearn.model_selection import GridSearchCV
 import numpy as np
 from sklearn.model_selection import PredefinedSplit
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.impute import SimpleImputer
 from tslearn.clustering import TimeSeriesKMeans,silhouette_score
-import math
 
 def preprocess_min_max_group(df, x, group):
     out = pd.DataFrame()
@@ -161,17 +160,11 @@ def general_model(ts, Y, model_pred=RandomForestRegressor(random_state=0),  X=No
             # Optimize in trainig data, based on a 50/50 split
             
             # Get splits
-            val_train_ids = list(y_train[:int(0.7*len(y_train))].index)
-            val_test_ids = list(y_train[int(0.7*len(y_train)):].index)
+            val_train_ids = list(y_train[:int(0.5*len(y_train))].index)
+            val_test_ids = list(y_train[int(0.5*len(y_train)):].index)
             splits = np.array([-1] * len(val_train_ids) + [0] * len(val_test_ids))
             splits = PredefinedSplit(test_fold=splits)
-            
-            # Check size of opti grid, and decide if random or exhaustive optimization
-            grid_size = math.prod(len(i) for i in grid.values())
-            if grid_size > 50:
-                grid_search = RandomizedSearchCV(estimator=model_pred, param_distributions=grid, cv=splits, verbose=0, n_jobs=-1, n_iter=50, random_state=1)  
-            else:
-                grid_search = GridSearchCV(estimator=model_pred, param_grid=grid, cv=splits, verbose=0, n_jobs=-1)
+            grid_search = GridSearchCV(estimator=model_pred, param_grid=grid, cv=splits, verbose=0, n_jobs=-1)
             grid_search.fit(x_train, y_train)
             pred = grid_search.predict(x_test)
         # If no optimization
@@ -326,18 +319,11 @@ def general_dynamic_model(ts, Y, model_pred=RandomForestRegressor(random_state=0
                     # Optimize in trainig data, based on a 50/50 split
                     
                     # Get splits
-                    val_train_ids = list(y_train[:int(0.7*len(y_train))].index)
-                    val_test_ids = list(y_train[int(0.7*len(y_train)):].index)
+                    val_train_ids = list(y_train[:int(0.5*len(y_train))].index)
+                    val_test_ids = list(y_train[int(0.5*len(y_train)):].index)
                     splits = np.array([-1] * len(val_train_ids) + [0] * len(val_test_ids))
                     splits = PredefinedSplit(test_fold=splits)
-                    
-                    # Check size of opti grid, and decide if random or exhaustive optimization
-                    grid_size = math.prod(len(i) for i in grid.values())
-                    if grid_size > 50:
-                        grid_search = RandomizedSearchCV(estimator=model_pred, param_distributions=grid, cv=splits, verbose=0, n_jobs=-1, n_iter=50, random_state=1)  
-                    else:
-                        grid_search = GridSearchCV(estimator=model_pred, param_grid=grid, cv=splits, verbose=0, n_jobs=-1)
-                        
+                    grid_search = GridSearchCV(estimator=model_pred, param_grid=grid, cv=splits, verbose=0, n_jobs=-1)                       
                     grid_search.fit(x_train, y_train.values.ravel())
                     pred = grid_search.predict(x_test)
                 
