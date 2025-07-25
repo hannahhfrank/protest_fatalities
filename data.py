@@ -604,8 +604,9 @@ df=agg_month[["dd","year","gw_codes","country","n_protest_events","region"]]
                                 ############
   
 # Load                            
-ucdp = pd.read_csv("https://ucdp.uu.se/downloads/ged/ged241-csv.zip",low_memory=False)
-ucdp.to_csv("data/ucdp.csv") 
+#ucdp = pd.read_csv("https://ucdp.uu.se/downloads/ged/ged241-csv.zip",low_memory=False)
+#ucdp.to_csv("data/ucdp.csv") 
+ucdp = pd.read_csv("data/ucdp.csv",index_col=[0])
 
 # Only keep civil conflict
 ucdp_s = ucdp[(ucdp["type_of_violence"]==1)].copy(deep=True)
@@ -1150,16 +1151,17 @@ feat_dev = ["NY.GDP.PCAP.CD", # GDP per capita (current US$)
             ]
 
 # Load wb data from api
-wdi = pd.DataFrame()
-for i in list(range(1989, 2024, 1)):
-    print(i)
-    wdi_s = wb.data.DataFrame(feat_dev, list(c_codes.iso_alpha3), [i])
-    wdi_s.reset_index(inplace=True)
-    wdi_s["year"] = i
-    wdi = pd.concat([wdi, wdi_s], ignore_index=True)  # merge for each year
+#wdi = pd.DataFrame()
+#for i in list(range(1989, 2024, 1)):
+#    print(i)
+#    wdi_s = wb.data.DataFrame(feat_dev, list(c_codes.iso_alpha3), [i])
+#    wdi_s.reset_index(inplace=True)
+#    wdi_s["year"] = i
+#    wdi = pd.concat([wdi, wdi_s], ignore_index=True)  # merge for each year
 
-wdi = pd.merge(wdi,c_codes[['gw_codes','iso_alpha3']],how='left',left_on=['economy'],right_on=['iso_alpha3'])
-wdi.to_csv("data/wdi.csv") 
+#wdi = pd.merge(wdi,c_codes[['gw_codes','iso_alpha3']],how='left',left_on=['economy'],right_on=['iso_alpha3'])
+#wdi.to_csv("data/wdi.csv") 
+wdi = pd.read_csv("data/wdi.csv",index_col=[0]) 
 
 # GDP per capita (current US$)
 base=df[["year","country","gw_codes"]].drop_duplicates(subset=["year","country"]).reset_index(drop=True)
