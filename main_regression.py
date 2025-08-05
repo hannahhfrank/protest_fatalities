@@ -1,6 +1,6 @@
 import pandas as pd
 import numpy as np
-from functions import clustering,preprocess_min_max_group
+from functions import clustering
 import matplotlib.pyplot as plt
 import json
 from dtaidistance import dtw
@@ -49,8 +49,6 @@ df = df[~df['gw_codes'].isin(list(micro_states.values()))]
 df = df.reset_index(drop=True)
 
 # Transforms
-preprocess_min_max_group(df,"fatalities","country")
-df['fatalities_norm_lag1'] = df.groupby('gw_codes')['fatalities_norm'].shift(1).fillna(0)
 df["SP.POP.TOTL_log"]=np.log(df["SP.POP.TOTL"])
 df["NY.GDP.PCAP.CD_log"]=np.log(df["NY.GDP.PCAP.CD"])
 df["fatalities_log"]=np.log(df["fatalities"]+1)

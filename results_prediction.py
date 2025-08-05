@@ -1,6 +1,5 @@
 import pandas as pd
 import numpy as np
-from functions import preprocess_min_max_group
 from sklearn.metrics import mean_squared_error
 import matplotlib.pyplot as plt
 import json
@@ -98,7 +97,7 @@ df_nonlinear["mse_drfx"]=((df_nonlinear["fatalities"] - df_nonlinear["preds_drfx
 
 print(round(df_nonlinear["mse_rf"].mean(),5))
 print(round(df_nonlinear["mse_rfx"].mean(),5))
-print(round(df_nonlinear["mse_drf"].mean(),7))
+print(round(df_nonlinear["mse_drf"].mean(),5))
 print(round(df_nonlinear["mse_drfx"].mean(),5))
 
 print(round(df_nonlinear["mse_rf"].std(),3))
@@ -120,8 +119,8 @@ yerrs=[1.65 *(df_linear["mse_ols"].std()/np.sqrt(len(df_linear))),1.65 *(df_line
 ax1.scatter([0,1,2,3], [df_linear["mse_ols"].mean(),df_linear["mse_dols"].mean(),df_linear["mse_olsx"].mean(),df_linear["mse_dolsx"].mean()],color="black",marker='o',s=50)
 ax1.errorbar([0,1,2,3], [df_linear["mse_ols"].mean(),df_linear["mse_dols"].mean(),df_linear["mse_olsx"].mean(),df_linear["mse_dolsx"].mean()], yerr=yerrs, color="black", linewidth=1, fmt='none')
 ax1.grid(False)
-ax1.set_ylim(0.008,0.018)
-ax1.set_yticks([0.008,0.009,0.01,0.011,0.012,0.013,0.014,0.015,0.016,0.017,0.018],[0.008,0.009,0.01,0.011,0.012,0.013,0.014,0.015,0.016,0.017,0.018],fontsize=18)
+ax1.set_ylim(0.0155,0.0255)
+ax1.set_yticks([0.016,0.017,0.018,0.019,0.02,0.021,0.022,0.023,0.024,0.025],[0.016,0.017,0.018,0.019,0.02,0.021,0.022,0.023,0.024,0.025],fontsize=18)
 ax1.set_ylabel("Mean squared error (MSE)",size=22)
 ax1.set_xticks([0,1,2,3],['RR','DRR','RRX','DRRX'],fontsize=18)
 
@@ -130,42 +129,42 @@ yerrs=[1.65 *(df_nonlinear["mse_rf"].std()/np.sqrt(len(df_nonlinear))),1.65 *(df
 ax2.scatter([0,1,2,3], [df_nonlinear["mse_rf"].mean(),df_nonlinear["mse_drf"].mean(),df_nonlinear["mse_rfx"].mean(),df_nonlinear["mse_drfx"].mean()], color="black", marker='o',s=50)
 ax2.errorbar([0,1,2,3], [df_nonlinear["mse_rf"].mean(),df_nonlinear["mse_drf"].mean(),df_nonlinear["mse_rfx"].mean(),df_nonlinear["mse_drfx"].mean()], yerr=yerrs, color="black", linewidth=1, fmt='none')
 ax2.grid(False)
-ax2.set_ylim(0.006,0.013)
-ax2.set_yticks([0.006,0.007,0.008,0.009,0.01,0.011,0.012,0.013],[0.006,0.007,0.008,0.009,0.01,0.011,0.012,0.013],size=18)
+ax2.set_ylim(0.0125,0.0225)
+ax2.set_yticks([0.013,0.014,0.015,0.016,0.017,0.018,0.019,0.02,0.021,0.022],[0.013,0.014,0.015,0.016,0.017,0.018,0.019,0.02,0.021,0.022],size=18)
 ax2.yaxis.set_ticks_position('right')
 ax2.set_xticks([0,1,2,3],['RF','DRF','RFX','DRFX'],fontsize=18)
 plt.subplots_adjust(wspace=0.05)
 
 # Manually add results for the t-test
-ax1.plot([0,2],[0.0161,0.0161],linewidth=0.5,color="black")
-ax1.plot([0,0],[0.0161,0.016],linewidth=0.5,color="black")
-ax1.plot([2,2],[0.0161,0.016],linewidth=0.5,color="black")
-ax1.text(0.92, 0.0162, "x", fontsize=12)
+ax1.plot([0,2],[0.0246,0.0246],linewidth=0.5,color="black")
+ax1.plot([0,0],[0.0246,0.0244],linewidth=0.5,color="black")
+ax1.plot([2,2],[0.0246,0.0244],linewidth=0.5,color="black")
+ax1.text(0.92, 0.0247, "o", fontsize=12)
 
-ax1.plot([0,1],[0.0099,0.0099],linewidth=0.5,color="black")
-ax1.plot([0,0],[0.0099,0.01],linewidth=0.5,color="black")
-ax1.plot([1,1],[0.0099,0.01],linewidth=0.5,color="black")
-ax1.text(0.42, 0.0096, "***", fontsize=12)
+ax1.plot([0,1],[0.0169,0.0169],linewidth=0.5,color="black")
+ax1.plot([0,0],[0.0169,0.0171],linewidth=0.5,color="black")
+ax1.plot([1,1],[0.0169,0.0171],linewidth=0.5,color="black")
+ax1.text(0.42, 0.0166, "***", fontsize=12)
 
-ax1.plot([2,3],[0.0097,0.0097],linewidth=0.5,color="black")
-ax1.plot([2,2],[0.0097,0.0098],linewidth=0.5,color="black")
-ax1.plot([3,3],[0.0097,0.0098],linewidth=0.5,color="black")
-ax1.text(2.42, 0.00939, "***", fontsize=12)
+ax1.plot([2,3],[0.0166,0.0166],linewidth=0.5,color="black")
+ax1.plot([2,2],[0.0166,0.0168],linewidth=0.5,color="black")
+ax1.plot([3,3],[0.0166,0.0168],linewidth=0.5,color="black")
+ax1.text(2.42, 0.0163, "***", fontsize=12)
 
-ax2.plot([0,2],[0.0122,0.0122],linewidth=0.5,color="black")
-ax2.plot([0,0],[0.0122,0.01213],linewidth=0.5,color="black")
-ax2.plot([2,2],[0.0122,0.01213],linewidth=0.5,color="black")
-ax2.text(0.92,0.0122, "***", fontsize=12)
+ax2.plot([0,2],[0.0218,0.0218],linewidth=0.5,color="black")
+ax2.plot([0,0],[0.0218,0.0216],linewidth=0.5,color="black")
+ax2.plot([2,2],[0.0218,0.0216],linewidth=0.5,color="black")
+ax2.text(0.92,0.0218, "***", fontsize=12)
 
-ax2.plot([0,1],[0.0086,0.0086],linewidth=0.5,color="black")
-ax2.plot([0,0],[0.0086,0.00867],linewidth=0.5,color="black")
-ax2.plot([1,1],[0.0086,0.00867],linewidth=0.5,color="black")
-ax2.text(0.42,0.00839, "***", fontsize=12)
+ax2.plot([0,1],[0.0158,0.0158],linewidth=0.5,color="black")
+ax2.plot([0,0],[0.0158,0.016],linewidth=0.5,color="black")
+ax2.plot([1,1],[0.0158,0.016],linewidth=0.5,color="black")
+ax2.text(0.42,0.0155, "***", fontsize=12)
 
-ax2.plot([2,3],[0.00746,0.00746],linewidth=0.5,color="black")
-ax2.plot([2,2],[0.00746,0.00753],linewidth=0.5,color="black")
-ax2.plot([3,3],[0.00746,0.00753],linewidth=0.5,color="black")
-ax2.text(2.42,0.00725, "***", fontsize=12)
+ax2.plot([2,3],[0.014,0.014],linewidth=0.5,color="black")
+ax2.plot([2,2],[0.014,0.0142],linewidth=0.5,color="black")
+ax2.plot([3,3],[0.014,0.0142],linewidth=0.5,color="black")
+ax2.text(2.42,0.0137, "***", fontsize=12)
 
 # Save
 plt.savefig("out/results_main_plot.eps",dpi=300,bbox_inches="tight")
@@ -358,6 +357,17 @@ plt.show()
 #########################################################
 
 # Min-max normalize protest and fatalitiy time series
+def preprocess_min_max_group(df, x, group):
+    out = pd.DataFrame()
+    for i in df[group].unique():
+        Y = df[x].loc[df[group] == i]
+        mini = np.min(Y)
+        maxi = np.max(Y)
+        Y = (Y - mini) / (maxi - mini)
+        Y=Y.fillna(0) 
+        out = pd.concat([out, pd.DataFrame(Y)], ignore_index=True)
+    df[f"{x}_norm"] = out
+
 preprocess_min_max_group(df,"n_protest_events","country")
 preprocess_min_max_group(df,"fatalities","country")
       

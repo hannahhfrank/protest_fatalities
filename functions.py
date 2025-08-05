@@ -10,10 +10,23 @@ def preprocess_min_max_group(df, x, group):
     out = pd.DataFrame()
     for i in df[group].unique():
         Y = df[x].loc[df[group] == i]
-        mini = np.min(Y)
-        maxi = np.max(Y)
-        Y = (Y - mini) / (maxi - mini)
-        Y=Y.fillna(0) 
+        
+        # Training
+        y_train = Y[:int(0.7*len(Y))]
+        mini = np.min(y_train)
+        maxi = np.max(y_train)
+        y_train = (y_train - mini) / (maxi - mini)
+        y_train=y_train.fillna(0) 
+        
+        # test
+        y_test =  Y[int(0.7*len(Y)):]           
+        mini = np.min(y_test)
+        maxi = np.max(y_test)
+        y_test = (y_test - mini) / (maxi - mini)
+        y_test=y_test.fillna(0) 
+        
+        # Merge
+        Y=pd.concat([y_train,y_test])  
         out = pd.concat([out, pd.DataFrame(Y)], ignore_index=True)
     df[f"{x}_norm"] = out
 
@@ -108,10 +121,19 @@ def general_model(ts, Y, model_pred=RandomForestRegressor(random_state=0),  X=No
 
     # Normalize output    
     if norm==True:
-        mini = np.min(Y)
-        maxi = np.max(Y)
-        Y = (Y - mini) / (maxi - mini)
-        Y=Y.fillna(0) 
+        y_train = Y[:int(0.7*len(Y))]
+        mini = np.min(y_train)
+        maxi = np.max(y_train)
+        y_train = (y_train - mini) / (maxi - mini)
+        y_train=y_train.fillna(0) 
+        
+        y_test = Y[int(0.7*len(Y)):]      
+        mini = np.min(y_test)
+        maxi = np.max(y_test)
+        y_test = (y_test - mini) / (maxi - mini)
+        y_test=y_test.fillna(0) 
+    
+        Y=pd.concat([y_train,y_test])  
                
     min_test=np.inf
     for ar in ar_test:
@@ -191,10 +213,19 @@ def general_dynamic_model(ts, Y, model_pred=RandomForestRegressor(random_state=0
     
     # Normalize output
     if norm==True:
-        mini = np.min(Y)
-        maxi = np.max(Y)
-        Y = (Y - mini) / (maxi - mini)
-        Y=Y.fillna(0) 
+        y_train = Y[:int(0.7*len(Y))]
+        mini = np.min(y_train)
+        maxi = np.max(y_train)
+        y_train = (y_train - mini) / (maxi - mini)
+        y_train=y_train.fillna(0) 
+        
+        y_test = Y[int(0.7*len(Y)):]       
+        mini = np.min(y_test)
+        maxi = np.max(y_test)
+        y_test = (y_test - mini) / (maxi - mini)
+        y_test=y_test.fillna(0) 
+    
+        Y=pd.concat([y_train,y_test])  
     
     # (1) Clustering  
     min_test=np.inf
