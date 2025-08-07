@@ -7,7 +7,7 @@ import wbgapi as wb
                                 #############
 
 # Get ACLED data on the country-month level
-# https://acleddata.com/conflict-data/download-data-files
+# Downloaded from: https://acleddata.com/conflict-data/download-data-files
 # Codebook: https://acleddata.com/sites/default/files/wp-content-archive/uploads/dlm_uploads/2023/06/ACLED_Codebook_2023.pdf
 acled = pd.read_csv("data/acled_all_events.csv",low_memory=False,index_col=[0]) 
 df_s = acled.loc[(acled['event_type']=="Protests")].copy(deep=True)
@@ -607,7 +607,7 @@ df=agg_month[["dd","year","gw_codes","country","n_protest_events","region"]]
                                 ############
   
 # Load
-# https://ucdp.uu.se/downloads/
+# Available here: https://ucdp.uu.se/downloads/
 # Codebook: https://ucdp.uu.se/downloads/ged/ged241.pdf                            
 ucdp = pd.read_csv("https://ucdp.uu.se/downloads/ged/ged241-csv.zip",low_memory=False)
 ucdp.to_csv("data/ucdp.csv") 
@@ -668,7 +668,7 @@ df['fatalities'] = df['fatalities'].fillna(0)
                                     #############
   
 # Load and subset   
-# https://v-dem.net/data/the-v-dem-dataset/
+# Downloaded from: https://v-dem.net/data/the-v-dem-dataset/
 # Codebook: https://v-dem.net/documents/38/V-Dem_Codebook_v14.pdf                             
 vdem = pd.read_csv("data/V-Dem-CY-Full+Others-v14.csv",low_memory=False)
 vdem_s=vdem[["year","country_name","v2x_polyarchy","v2x_libdem","v2x_partipdem","v2x_delibdem","v2x_egaldem","v2x_neopat","v2x_civlib","v2x_clphy","v2x_corr","v2x_rule"]]   
