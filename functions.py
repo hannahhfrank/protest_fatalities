@@ -11,14 +11,14 @@ def preprocess_min_max_group(df, x, group):
     for i in df[group].unique():
         Y = df[x].loc[df[group] == i]
         
-        # Training
+        # Train
         y_train = Y[:int(0.7*len(Y))]
         mini = np.min(y_train)
         maxi = np.max(y_train)
         y_train = (y_train - mini) / (maxi - mini)
         y_train=y_train.fillna(0) 
         
-        # test
+        # Test
         y_test =  Y[int(0.7*len(Y)):]           
         mini = np.min(y_test)
         maxi = np.max(y_test)
