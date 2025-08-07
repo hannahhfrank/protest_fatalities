@@ -87,7 +87,8 @@ def linear_imp_grouped(df, group, vars_input):
         test_s = df_s[int(0.7*len(df_s)):]
         train = pd.concat([train, train_s])
         test = pd.concat([test, test_s])
-    
+
+    # Fill    
     df_filled = pd.DataFrame()
     for c in df[group].unique():
         

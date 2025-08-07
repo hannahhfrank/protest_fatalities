@@ -7,6 +7,8 @@ import wbgapi as wb
                                 #############
 
 # Get ACLED data on the country-month level
+# https://acleddata.com/conflict-data/download-data-files
+# Codebook: https://acleddata.com/sites/default/files/wp-content-archive/uploads/dlm_uploads/2023/06/ACLED_Codebook_2023.pdf
 acled = pd.read_csv("data/acled_all_events.csv",low_memory=False,index_col=[0]) 
 df_s = acled.loc[(acled['event_type']=="Protests")].copy(deep=True)
 df_s["dd"] = pd.to_datetime(df_s['event_date'],format='%d %B %Y')
@@ -288,7 +290,7 @@ agg_month=agg_month.fillna(0)
 add_countries = acled[['country', 'iso']].drop_duplicates()
 agg_month=pd.merge(agg_month, add_countries,on=["iso"],how="left")
 
-# Manually fix countries which are in ACLED but not it data downloaded
+# Manually fix countries which are in ACLED but not in data downloaded
 agg_month.loc[agg_month["iso"]==86,"country"]="British Indian Ocean Territory"
 agg_month.loc[agg_month["iso"]==166,"country"]="Cocos (Keeling) Islands"
 agg_month.loc[agg_month["iso"]==239,"country"]="South Georgia and the South Sandwich Islands"
@@ -323,6 +325,7 @@ agg_month["n_protest_events"].loc[(agg_month["country"]=="Israel")]
 agg_month = agg_month.sort_values(by=["country","dd"])
 
 # Add GW country codes 
+# http://ksgleditsch.com/data-4.html
 agg_month.country.unique()
 agg_month["gw_codes"]=999999
 agg_month.loc[agg_month["country"]=="Afghanistan","gw_codes"]=700
@@ -603,7 +606,9 @@ df=agg_month[["dd","year","gw_codes","country","n_protest_events","region"]]
                                 ### UCDP ###
                                 ############
   
-# Load                            
+# Load
+# https://ucdp.uu.se/downloads/
+# Codebook: https://ucdp.uu.se/downloads/ged/ged241.pdf                            
 ucdp = pd.read_csv("https://ucdp.uu.se/downloads/ged/ged241-csv.zip",low_memory=False)
 ucdp.to_csv("data/ucdp.csv") 
 
@@ -662,13 +667,16 @@ df['fatalities'] = df['fatalities'].fillna(0)
                                     ### V-dem ###
                                     #############
   
-# Load and subset                                
+# Load and subset   
+# https://v-dem.net/data/the-v-dem-dataset/
+# Codebook: https://v-dem.net/documents/38/V-Dem_Codebook_v14.pdf                             
 vdem = pd.read_csv("data/V-Dem-CY-Full+Others-v14.csv",low_memory=False)
 vdem_s=vdem[["year","country_name","v2x_polyarchy","v2x_libdem","v2x_partipdem","v2x_delibdem","v2x_egaldem","v2x_neopat","v2x_civlib","v2x_clphy","v2x_corr","v2x_rule"]]   
 vdem_s.columns=["year","country","v2x_polyarchy","v2x_libdem","v2x_partipdem","v2x_delibdem","v2x_egaldem","v2x_neopat","v2x_civlib","v2x_clphy","v2x_corr","v2x_rule"]                           
 vdem_s=vdem_s.sort_values(by=["country","year"])
 
 # Add country codes
+# http://ksgleditsch.com/data-4.html
 vdem_s["gw_codes"]=999999
 vdem_s.loc[vdem_s["country"]=="Afghanistan","gw_codes"]=700
 vdem_s.loc[vdem_s["country"]=="Albania","gw_codes"]=339
@@ -942,7 +950,11 @@ df.isnull().any()
                             ##################
                             ### World Bank ###
                             ##################
-
+                            
+# The World Bank data is loaded via the API
+# But can be manually downloaded here: https://databank.worldbank.org/source/world-development-indicators
+# Verify country codes by downloading one variable manually
+# https://data.worldbank.org/indicator/NY.GDP.PCAP.CD
 c_codes = {'Afghanistan': [700, 'AFG'],
             'Albania': [339, 'ALB'],
             'Algeria': [615, 'DZA'],
@@ -1170,7 +1182,7 @@ base_imp_final=linear_imp_grouped(base,"country",["NY.GDP.PCAP.CD"])
 base_imp_mean=simple_imp_grouped(base,"country",["NY.GDP.PCAP.CD"])
 base_imp_final["NY.GDP.PCAP.CD"] = base_imp_final["NY.GDP.PCAP.CD"].fillna(base_imp_mean["NY.GDP.PCAP.CD"])
 
-# check
+# Check
 #for c in base.country.unique():
 #    fig, axs = plt.subplots(1, 2, figsize=(10, 5))
 #    axs[0].plot(base["year"].loc[base["country"]==c], base["NY.GDP.PCAP.CD"].loc[base["country"]==c])
@@ -1191,7 +1203,7 @@ base_imp_final=linear_imp_grouped(base,"country",["SP.POP.TOTL"])
 base_imp_mean=simple_imp_grouped(base,"country",["SP.POP.TOTL"])
 base_imp_final["SP.POP.TOTL"] = base_imp_final["SP.POP.TOTL"].fillna(base_imp_mean["SP.POP.TOTL"])
 
-# check
+# Check
 #for c in base.country.unique():
 #    fig, axs = plt.subplots(1, 2, figsize=(10, 5))
 #    axs[0].plot(base["year"].loc[base["country"]==c], base["SP.POP.TOTL"].loc[base["country"]==c])

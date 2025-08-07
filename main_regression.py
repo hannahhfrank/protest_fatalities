@@ -157,7 +157,7 @@ for k in [3,5,7]:
         centroids = []
         # Loop over clusters
         for ids in clusters_s:
-            # Get all within centroids assigned to the specific cluster
+            # Get all centroids assigned to the specific cluster
             cluster_seq = [matrix_in[i] for i, cluster in enumerate(clusters) if cluster == ids]
             # Then calculate the centroid using DTW Barycenter Averaging (DBA)
             # takes the mean for time series

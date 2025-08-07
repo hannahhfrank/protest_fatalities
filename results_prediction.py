@@ -473,7 +473,7 @@ ax.set_ylim(-0.2,2.5)
 ax.text(0.4, 1.92, "Egypt (05-2005---04-2006)", fontsize=23, color="black")
 ax.text(2.1, -0.12, "Egypt (07-2014---06-2015)", fontsize=23, color="black")
 
-# Run dtw on the two time series, and obtain waarping path
+# Run dtw on the two time series, and obtain warping path
 dist, cost_matrix = dtw.warping_paths(t1, t2)
 dtw_path = dtw.best_path(cost_matrix) 
 print(dist)

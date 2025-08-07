@@ -145,7 +145,7 @@ for c in countries:
     preds["fatalities"] = list(OLS["actuals"])
     preds["preds_ols"] = list(OLS["pred"])
         
-    # Linea X
+    # Linear X
     OLSx = general_model(ts,Y,X=X,model_pred=Ridge(max_iter=5000),grid=grid_lasso,norm=True) 
     preds["preds_olsx"] = list(OLSx["pred"])
     final_preds_linear = pd.concat([final_preds_linear, preds])
