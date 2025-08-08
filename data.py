@@ -1168,7 +1168,7 @@ for i in list(range(1989, 2024, 1)):
     wdi_s = wb.data.DataFrame(feat_dev, list(c_codes.iso_alpha3), [i])
     wdi_s.reset_index(inplace=True)
     wdi_s["year"] = i
-    wdi = pd.concat([wdi, wdi_s], ignore_index=True)  # merge for each year
+    wdi = pd.concat([wdi, wdi_s], ignore_index=True)  
 
 wdi = pd.merge(wdi,c_codes[['gw_codes','iso_alpha3']],how='left',left_on=['economy'],right_on=['iso_alpha3'])
 wdi.to_csv("data/wdi.csv") 

@@ -2,23 +2,17 @@ import pandas as pd
 import numpy as np
 from functions import general_model,general_dynamic_model,preprocess_min_max_group
 import json
-import matplotlib as mpl
 from sklearn.linear_model import Ridge
 from sklearn.metrics import mean_squared_error
-import os 
 import warnings
 warnings.filterwarnings('ignore', category=FutureWarning)
-os.environ['PATH'] = "/Library/TeX/texbin:" + os.environ.get('PATH', '')
-mpl.rcParams['text.usetex'] = True
-mpl.rcParams['font.family'] = 'serif'
-mpl.rcParams['font.serif'] = ['Computer Modern Roman']
-mpl.rcParams['text.latex.preamble'] = r'\usepackage{lmodern}\usepackage[T1]{fontenc}'
 
 grid = {'n_estimators': [10, 231, 452, 673, 894, 1115, 1336, 1557, 1778, 2000]}
 
 grid_lasso = {'alpha': [0.0001, 0.001, 0.01, 0.1, 0.5, 1, 2, 5, 10]}
 
 # Remove microstates
+# http://ksgleditsch.com/data-4.html
 micro_states={"Dominica":54,
               "Grenada":55,
               "Saint Lucia":56,
@@ -43,7 +37,7 @@ micro_states={"Dominica":54,
               "Micronesia":987,
               "Samoa":990}
 
-# Load data
+# Load data and do transforms
 df = pd.read_csv("data/df.csv",index_col=0)
 df = df[~df['gw_codes'].isin(list(micro_states.values()))]
 df = df.reset_index(drop=True)

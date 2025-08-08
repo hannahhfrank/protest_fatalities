@@ -32,7 +32,7 @@ def preprocess_min_max_group(df, x, group):
 
 def simple_imp_grouped(df, group, vars_input):
     
-    # Split 
+    # Split data
     train = pd.DataFrame()
     test = pd.DataFrame()
     for c in df.country.unique():
@@ -46,7 +46,7 @@ def simple_imp_grouped(df, group, vars_input):
     df_filled = pd.DataFrame()
     for c in df[group].unique():
         
-        # Training
+        # Train
         df_s = train.loc[train[group] == c]
         imp = df_s[vars_input]
         df_imp = imp.copy(deep=True)
@@ -318,7 +318,7 @@ def general_dynamic_model(ts, Y, model_pred=RandomForestRegressor(random_state=0
                     in_put=pd.concat([in_put,clusters],axis=1)
                     
                 # Fill missing values with zero
-                # These oocur due to the potentially different start
+                # These occur due to the potentially different start
                 # indices in clusters and the input matrix
                 in_put=in_put.fillna(0)
                             

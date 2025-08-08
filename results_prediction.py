@@ -18,6 +18,7 @@ mpl.rcParams['font.serif'] = ['Computer Modern Roman']
 mpl.rcParams['text.latex.preamble'] = r'\usepackage{lmodern}\usepackage[T1]{fontenc}'
 
 # Mircostates
+# http://ksgleditsch.com/data-4.html
 micro_states={"Dominica":54,
               "Grenada":55,
               "Saint Lucia":56,

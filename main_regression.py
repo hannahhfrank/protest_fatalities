@@ -19,6 +19,7 @@ mpl.rcParams['font.serif'] = ['Computer Modern Roman']
 mpl.rcParams['text.latex.preamble'] = r'\usepackage{lmodern}\usepackage[T1]{fontenc}'
 
 # Remove microstates
+# http://ksgleditsch.com/data-4.html
 micro_states={"Dominica":54,
               "Grenada":55,
               "Saint Lucia":56,
@@ -136,7 +137,7 @@ for k in [3,5,7]:
         row=row.astype(float)
         matrix_in.append(row[~np.isnan(row)])
         
-    # Hierachical clustering  
+    # Hierachical clustering with DTW as distance metric
     matrix_d = dtw.distance_matrix_fast(matrix_in)    
     dist_matrix = squareform(matrix_d)
     link_matrix = linkage(dist_matrix, method='complete')
@@ -164,7 +165,7 @@ for k in [3,5,7]:
             cen = dtw_barycenter_averaging(cluster_seq, barycenter_size=7)
             centroids.append(cen.ravel())
         
-        # Plot
+        # Plot centroids
         plt.figure(figsize=(10, 6))
         for i, seq in enumerate(centroids):
             plt.subplot(2, 3, i+1)
