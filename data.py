@@ -608,9 +608,9 @@ df=agg_month[["dd","year","gw_codes","country","n_protest_events","region"]]
   
 # Load
 # Available here: https://ucdp.uu.se/downloads/
-# Codebook: https://ucdp.uu.se/downloads/ged/ged241.pdf                            
-ucdp = pd.read_csv("https://ucdp.uu.se/downloads/ged/ged241-csv.zip",low_memory=False)
-ucdp.to_csv("data/ucdp.csv") 
+# Version 24: https://ucdp.uu.se/downloads/ged/ged241-csv.zip
+# Codebook: https://ucdp.uu.se/downloads/ged/ged241.pdf
+ucdp = pd.read_csv("GEDEvent_v24_1 3.csv",low_memory=False)
 
 # Only keep civil conflict
 ucdp_s = ucdp[(ucdp["type_of_violence"]==1)].copy(deep=True)
