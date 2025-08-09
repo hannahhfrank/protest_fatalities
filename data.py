@@ -6,16 +6,22 @@ import wbgapi as wb
                                 ### ACLED ###
                                 #############
 
-# Get ACLED data on the country-month level
+# Load ACLED data and subset protests
 # Downloaded from: https://acleddata.com/conflict-data/download-data-files
 # Codebook: https://acleddata.com/sites/default/files/wp-content-archive/uploads/dlm_uploads/2023/06/ACLED_Codebook_2023.pdf
 acled = pd.read_csv("data/acled_all_events.csv",low_memory=False,index_col=[0]) 
 df_s = acled.loc[(acled['event_type']=="Protests")].copy(deep=True)
+
+# Get dd variable
 df_s["dd"] = pd.to_datetime(df_s['event_date'],format='%d %B %Y')
 df_s["dd"] = df_s["dd"].dt.strftime('%Y-%m')
+
+# Get number of ptotest events for country-month
 agg_month = pd.DataFrame(df_s.groupby(["dd","year","iso","country"]).size())
 agg_month = agg_month.reset_index()
 agg_month.rename(columns={0:"n_protest_events"},inplace=True)
+agg_month = agg_month.sort_values(by=["country","year","dd"])
+agg_month["dd"]=agg_month["dd"].astype(str)
 
 # Get dates and countries 
 # https://acleddata.com/acleddatanew/wp-content/uploads/dlm_uploads/2019/01/ACLED_Country-and-Time-Period-coverage_updatedFeb2022.pdf
@@ -265,12 +271,12 @@ country_dates={156:[2018,2023], # China, 710
                }
 
 # Make base df to merge events
-agg_month = agg_month.sort_values(by=["country","year","dd"])
 base=pd.DataFrame()
 countries=list(country_dates.keys())
 
-# Loop through every country-month 
+# Loop through every country 
 for i in range(0, len(countries)):
+    # Get range for country and add every month
     date = list(pd.date_range(start=f"{country_dates[countries[i]][0]}-01",end=f"{country_dates[countries[i]][1]}-12",freq="MS"))
     date = pd.to_datetime(date, format='%Y-%m').to_period('M')
     for x in range(0, len(date)):
@@ -278,11 +284,11 @@ for i in range(0, len(countries)):
         s = {'dd':date[x],'iso':countries[i]}
         s = pd.DataFrame(data=s,index=[0])
         base = pd.concat([base,s])  
-
-# Merge, the observations with na are filled with zero
 base = base.sort_values(by=["iso","dd"])
 base.reset_index(drop=True,inplace=True)
 base["dd"]=base["dd"].astype(str)
+
+# Merge: The observations with na are filled with zero, these have no events
 agg_month=pd.merge(base, agg_month[["dd","iso","n_protest_events"]],on=["dd","iso"],how="left")
 agg_month=agg_month.fillna(0)
 
@@ -301,7 +307,7 @@ agg_month.loc[agg_month["iso"]==585,"country"]="Palau"
 agg_month.loc[agg_month["iso"]==612,"country"]="Pitcairn"
 agg_month.loc[agg_month["iso"]==798,"country"]="Tuvalu"
 
-# Add continent
+# Add continent for those manual fixes
 add_countries = acled[['region', 'iso']].drop_duplicates()
 agg_month=pd.merge(agg_month, add_countries,on=["iso"],how="left")
 agg_month.loc[agg_month["iso"]==86,"region"]="Eastern Africa"
@@ -321,8 +327,6 @@ agg_month["n_protest_events"].loc[(agg_month["country"]=="Israel")]=agg_month["n
 agg_month["n_protest_events"].loc[(agg_month["country"]=="Israel")]
 
 # The other territories not included in GW will be dropped. 
-
-agg_month = agg_month.sort_values(by=["country","dd"])
 
 # Add GW country codes 
 # http://ksgleditsch.com/data-4.html
@@ -606,11 +610,11 @@ df=agg_month[["dd","year","gw_codes","country","n_protest_events","region"]]
                                 ### UCDP ###
                                 ############
   
-# Load
+# Load UCDP data
 # Available here: https://ucdp.uu.se/downloads/
 # Version 24: https://ucdp.uu.se/downloads/ged/ged241-csv.zip
 # Codebook: https://ucdp.uu.se/downloads/ged/ged241.pdf
-ucdp = pd.read_csv("GEDEvent_v24_1 3.csv",low_memory=False)
+ucdp = pd.read_csv("data/GEDEvent_v24_1 3.csv",low_memory=False)
 
 # Only keep civil conflict
 ucdp_s = ucdp[(ucdp["type_of_violence"]==1)].copy(deep=True)
@@ -641,6 +645,8 @@ ucdp_ss["dd_date_end"] = pd.to_datetime(ucdp_ss['date_end'],format='%Y-%m-%d %H:
 ucdp_ss["month_date_start"] = ucdp_ss["dd_date_start"].dt.strftime('%m')
 ucdp_ss["month_date_end"] = ucdp_ss["dd_date_end"].dt.strftime('%m')
 ucdp_date = ucdp_ss[["year","dd_date_start","dd_date_end","active_year","country","country_id","date_prec","best","deaths_a","deaths_b","deaths_civilians","deaths_unknown","month_date_start","month_date_end"]].copy(deep=True)
+
+# Reset index 
 ucdp_date = ucdp_date.sort_values(by=["country", "year"],ascending=True)
 ucdp_date.reset_index(drop=True, inplace=True)
 
@@ -653,13 +659,13 @@ for i in range(0,len(ucdp_date)):
 # Generate dd variable        
 ucdp_final['dd'] = pd.to_datetime(ucdp_final['dd_date_start'],format='%Y-%m').dt.to_period('M')
 
-# Aggregate and merge
+# Aggregate fatalities
 fat = pd.DataFrame(ucdp_final.groupby(["dd","country_id"])['best'].sum())
 ucdp_fat = fat.reset_index()
 ucdp_fat.columns=["dd","gw_codes","fatalities"]
-ucdp_fat["dd"]=ucdp_fat["dd"].astype(str)
 
-# Merge with ACLED
+# Merge with ACLED and fill na with zero, those have no events
+ucdp_fat["dd"]=ucdp_fat["dd"].astype(str)
 df=pd.merge(df,ucdp_fat,on=["dd","gw_codes"],how="left")
 df['fatalities'] = df['fatalities'].fillna(0)
 
@@ -673,7 +679,6 @@ df['fatalities'] = df['fatalities'].fillna(0)
 vdem = pd.read_csv("data/V-Dem-CY-Full+Others-v14.csv",low_memory=False)
 vdem_s=vdem[["year","country_name","v2x_polyarchy","v2x_libdem","v2x_partipdem","v2x_delibdem","v2x_egaldem","v2x_neopat","v2x_civlib","v2x_clphy","v2x_corr","v2x_rule"]]   
 vdem_s.columns=["year","country","v2x_polyarchy","v2x_libdem","v2x_partipdem","v2x_delibdem","v2x_egaldem","v2x_neopat","v2x_civlib","v2x_clphy","v2x_corr","v2x_rule"]                           
-vdem_s=vdem_s.sort_values(by=["country","year"])
 
 # Add country codes
 # http://ksgleditsch.com/data-4.html
@@ -917,7 +922,9 @@ vdem_s=vdem_s.loc[vdem_s["gw_codes"]!=999999]
 # Merge on country level
 base=df[["year","country","gw_codes"]].drop_duplicates(subset=["year","country"]).reset_index(drop=True)
 base=pd.merge(left=base,right=vdem_s[["year","gw_codes","v2x_polyarchy","v2x_libdem","v2x_partipdem","v2x_delibdem","v2x_egaldem","v2x_neopat","v2x_civlib","v2x_clphy","v2x_corr","v2x_rule"]],on=["year","gw_codes"],how="left")
-base[base['v2x_libdem'].isna()].country.unique()
+
+# Check which countries are completely missing
+base[base['v2x_libdem'].isna()].country.unique() 
 
 # Drop countries which are completely missing in vdem
 missing=['Andorra', 
@@ -1219,11 +1226,10 @@ df=pd.merge(df,base_imp_final[["year","gw_codes","SP.POP.TOTL"]],on=["year","gw_
 df = df[~df['country'].isin(["North Korea","Taiwan","Venezuela"])]
 
 # Save
+df=df.sort_values(by=["country","dd"])
 df=df.reset_index(drop=True)
+df.to_csv("data/df.csv")  
 print(df.isnull().any())
 print(df.duplicated().any())
-df=df.sort_values(by=["country","dd"])
-df.to_csv("data/df.csv")  
-
 
 
