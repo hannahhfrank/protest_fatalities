@@ -307,9 +307,11 @@ agg_month.loc[agg_month["iso"]==585,"country"]="Palau"
 agg_month.loc[agg_month["iso"]==612,"country"]="Pitcairn"
 agg_month.loc[agg_month["iso"]==798,"country"]="Tuvalu"
 
-# Add continent for those manual fixes
+# Add continent
 add_countries = acled[['region', 'iso']].drop_duplicates()
 agg_month=pd.merge(agg_month, add_countries,on=["iso"],how="left")
+
+# Manually fix countries which are in ACLED but not in data downloaded
 agg_month.loc[agg_month["iso"]==86,"region"]="Eastern Africa"
 agg_month.loc[agg_month["iso"]==166,"region"]="Oceania"
 agg_month.loc[agg_month["iso"]==239,"region"]="South America"
@@ -462,7 +464,6 @@ agg_month.loc[agg_month["country"]=="Montenegro","gw_codes"]=341
 agg_month.loc[agg_month["country"]=="Morocco","gw_codes"]=600
 agg_month.loc[agg_month["country"]=="Mozambique","gw_codes"]=541
 agg_month.loc[agg_month["country"]=="Myanmar","gw_codes"]=775
-
 
 agg_month.loc[agg_month["country"]=="Namibia","gw_codes"]=565
 agg_month.loc[agg_month["country"]=="Nauru","gw_codes"]=971
@@ -618,9 +619,9 @@ ucdp = pd.read_csv("data/GEDEvent_v24_1 3.csv",low_memory=False)
 
 # Only keep civil conflict
 ucdp_s = ucdp[(ucdp["type_of_violence"]==1)].copy(deep=True)
-u = ucdp_s[["dyad_name"]].drop_duplicates().reset_index(drop=True)
 
 # Remove government-government dyads
+u = ucdp_s[["dyad_name"]].drop_duplicates().reset_index(drop=True)
 ucdp_ss = ucdp_s.loc[(ucdp_s["dyad_name"] != "Government of Afghanistan - Government of United Kingdom, Government of United States of America") &
                     (ucdp_s["dyad_name"] != "Government of Cambodia (Kampuchea) - Government of Thailand") &
                     (ucdp_s["dyad_name"] != "Government of Cameroon - Government of Nigeria") &
@@ -951,8 +952,10 @@ missing=['Andorra',
 
 base = base[~base['country'].isin(missing)]
 df = df[~df['country'].isin(missing)]
+
+# Merge with ACLED and UCDP
 df=pd.merge(df,base[["year","gw_codes","v2x_polyarchy","v2x_libdem","v2x_partipdem","v2x_delibdem","v2x_egaldem","v2x_neopat","v2x_civlib","v2x_clphy","v2x_corr","v2x_rule"]],on=["year","gw_codes"],how="left")
-df.isnull().any()
+print(df.isnull().any())
 
                             ##################
                             ### World Bank ###
@@ -960,7 +963,7 @@ df.isnull().any()
                             
 # The World Bank data is loaded via the API
 # But can be manually downloaded here: https://databank.worldbank.org/source/world-development-indicators
-# Verify country codes by downloading one variable manually
+# Verify country codes by downloading one variable 
 # https://data.worldbank.org/indicator/NY.GDP.PCAP.CD
 c_codes = {'Afghanistan': [700, 'AFG'],
             'Albania': [339, 'ALB'],
@@ -1159,16 +1162,18 @@ c_codes = {'Afghanistan': [700, 'AFG'],
             'Zimbabwe': [552, 'ZWE'],
             }
 
+# Get country codes from dictionary
 c_codes=pd.DataFrame.from_dict(c_codes,orient='index')
 c_codes = c_codes.reset_index()
 c_codes.columns = ['country','gw_codes','iso_alpha3']
 c_codes = c_codes.loc[c_codes["iso_alpha3"]!= "XYZ"]
 
+# Specify variables
 feat_dev = ["NY.GDP.PCAP.CD", # GDP per capita (current US$)
             "SP.POP.TOTL", # Population size
             ]
 
-# Load wb data from api
+# Load data from api
 wdi = pd.DataFrame()
 for i in list(range(1989, 2024, 1)):
     print(i)
@@ -1177,10 +1182,11 @@ for i in list(range(1989, 2024, 1)):
     wdi_s["year"] = i
     wdi = pd.concat([wdi, wdi_s], ignore_index=True)  
 
+# Merge GW codes
 wdi = pd.merge(wdi,c_codes[['gw_codes','iso_alpha3']],how='left',left_on=['economy'],right_on=['iso_alpha3'])
 wdi.to_csv("data/wdi.csv") 
 
-# GDP per capita (current US$)
+# GDP per capita (current US$), on the country-year level
 base=df[["year","country","gw_codes"]].drop_duplicates(subset=["year","country"]).reset_index(drop=True)
 base=pd.merge(left=base,right=wdi[["year","gw_codes","NY.GDP.PCAP.CD","SP.POP.TOTL"]],on=["year","gw_codes"],how="left")
 
@@ -1201,7 +1207,7 @@ base_imp_final["NY.GDP.PCAP.CD"] = base_imp_final["NY.GDP.PCAP.CD"].fillna(base_
 # Merge
 df=pd.merge(df,base_imp_final[["year","gw_codes","NY.GDP.PCAP.CD"]],on=["year","gw_codes"],how="left")
 
-# Population size
+# Population size, on the country-year level
 base=df[["year","country","gw_codes"]].drop_duplicates(subset=["year","country"]).reset_index(drop=True)
 base=pd.merge(left=base,right=wdi[["year","gw_codes","NY.GDP.PCAP.CD","SP.POP.TOTL"]],on=["year","gw_codes"],how="left")
 
