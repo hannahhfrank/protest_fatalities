@@ -536,3 +536,8 @@ dist, cost_matrix = dtw.warping_paths(t1, t2)
 dtw_path = dtw.best_path(cost_matrix) 
 fig, ax = dtwvis.plot_warpingpaths(t1, t2, cost_matrix, dtw_path, shownumbers=True)
 plt.savefig("out/dtw_check2.png",dpi=300,bbox_inches="tight")
+
+
+
+
+
