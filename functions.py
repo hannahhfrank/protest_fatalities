@@ -139,15 +139,19 @@ def general_model(ts, Y, model_pred=RandomForestRegressor(random_state=0),  X=No
     min_test=np.inf
     for ar in ar_test:
 
-        # Function to get matrix with lags
+        # Function to get list of last ar observations in series
         def lags(series):
-            last = series.iloc[-ar:].fillna(0)
-            return last.tolist() + [0] * (ar - len(last))
+            last = series.iloc[-ar:]
+            return last.tolist()
            
         # Get matrix with temporal lags for ts
         data_matrix = []
-        for i in range(ar, len(ts) + 1):
+        # Start at index ar, roll through the time series        
+        for i in range(ar,len(ts)+1):
+            # and obtain the last ar observations using the lags function
+            # these are appended into matrix            
             data_matrix.append(lags(ts.iloc[:i]))
+        # Convert list of lists to df
         in_put=pd.DataFrame(data_matrix)
         
         # Set index to align with ts 
@@ -294,15 +298,19 @@ def general_dynamic_model(ts, Y, model_pred=RandomForestRegressor(random_state=0
             # (2) Predictions 
             for ar in ar_test:
                 
-                # Function to get matrix with lags
+                # Function to get list of last ar observations in series
                 def lags(series):
-                    last = series.iloc[-ar:].fillna(0)
-                    return last.tolist() + [0] * (ar - len(last))
+                    last = series.iloc[-ar:]
+                    return last.tolist() 
                 
                 # Get matrix with temporal lags for ts
                 data_matrix = []
-                for i in range(ar, len(ts) + 1):
+                # Start at index ar, roll through the time series        
+                for i in range(ar,len(ts)+1):
+                    # and obtain the last ar observations using the lags function
+                    # these are appended into matrix    
                     data_matrix.append(lags(ts.iloc[:i]))
+                # Convert list of lists to df
                 in_put=pd.DataFrame(data_matrix)
                         
                 # Set index to align with ts 
@@ -376,7 +384,7 @@ def general_dynamic_model(ts, Y, model_pred=RandomForestRegressor(random_state=0
                     seq=y_test_seq
                     # If all test sequences are assigned to one cluster,
                     # s score cannot be computed --> set to na
-                    if y_test_seq.max()==0:
+                    if np.unique(y_test_seq).size==1:
                         s=np.nan
                     else: 
                         s=silhouette_score(seq_matrix_l, y_test_seq, metric="dtw") 
