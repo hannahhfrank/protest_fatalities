@@ -62,17 +62,19 @@ print(mean_squared_error(df_linear.fatalities, df_linear.preds_olsx))
 print(mean_squared_error(df_linear.fatalities, df_linear.preds_dols))
 print(mean_squared_error(df_linear.fatalities, df_linear.preds_dolsx))
 
-# Get the error for each observation, ols
+# Get the error for each observation, ols (needed to calculate confidence intervals)
 df_linear["mse_ols"]=((df_linear["fatalities"] - df_linear["preds_ols"]) ** 2) 
 df_linear["mse_olsx"]=((df_linear["fatalities"] - df_linear["preds_olsx"]) ** 2)
 df_linear["mse_dols"]=((df_linear["fatalities"] - df_linear["preds_dols"]) ** 2) 
 df_linear["mse_dolsx"]=((df_linear["fatalities"] - df_linear["preds_dolsx"]) ** 2) 
 
+# Print mean error
 print(round(df_linear["mse_ols"].mean(),5))
 print(round(df_linear["mse_olsx"].mean(),5))
 print(round(df_linear["mse_dols"].mean(),5))
 print(round(df_linear["mse_dolsx"].mean(),5))
 
+# Print std for error
 print(round(df_linear["mse_ols"].std(),3))
 print(round(df_linear["mse_olsx"].std(),3))
 print(round(df_linear["mse_dols"].std(),3))
@@ -90,17 +92,19 @@ print(mean_squared_error(df_nonlinear.fatalities, df_nonlinear.preds_rfx))
 print(mean_squared_error(df_nonlinear.fatalities, df_nonlinear.preds_drf))
 print(mean_squared_error(df_nonlinear.fatalities, df_nonlinear.preds_drfx))
 
-# Get the error for each observation, rf
+# Get the error for each observation, rf (needed to calculate confidence intervals)
 df_nonlinear["mse_rf"]=((df_nonlinear["fatalities"] - df_nonlinear["preds_rf"]) ** 2) 
 df_nonlinear["mse_rfx"]=((df_nonlinear["fatalities"] - df_nonlinear["preds_rfx"]) ** 2)
 df_nonlinear["mse_drf"]=((df_nonlinear["fatalities"] - df_nonlinear["preds_drf"]) ** 2) 
 df_nonlinear["mse_drfx"]=((df_nonlinear["fatalities"] - df_nonlinear["preds_drfx"]) ** 2) 
 
+# Print mean error
 print(round(df_nonlinear["mse_rf"].mean(),5))
 print(round(df_nonlinear["mse_rfx"].mean(),5))
 print(round(df_nonlinear["mse_drf"].mean(),5))
 print(round(df_nonlinear["mse_drfx"].mean(),5))
 
+# Print std for error
 print(round(df_nonlinear["mse_rf"].std(),3))
 print(round(df_nonlinear["mse_rfx"].std(),3))
 print(round(df_nonlinear["mse_drf"].std(),3))
@@ -112,29 +116,37 @@ print(round(ttest_rel(df_nonlinear["mse_rf"], df_nonlinear["mse_rfx"])[1],5))
 print(round(ttest_rel(df_nonlinear["mse_rf"], df_nonlinear["mse_drf"])[1],5))
 print(round(ttest_rel(df_nonlinear["mse_rfx"], df_nonlinear["mse_drfx"])[1],5))
 
-# Plot
+# Specify plot
 fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(13, 7))
+plt.subplots_adjust(wspace=0.05)
 
-# OLS in plot 1
-yerrs=[1.65 *(df_linear["mse_ols"].std()/np.sqrt(len(df_linear))),1.65 *(df_linear["mse_dols"].std()/np.sqrt(len(df_linear))),1.65 *(df_linear["mse_olsx"].std()/np.sqrt(len(df_linear))),1.65 *(df_linear["mse_dolsx"].std()/np.sqrt(len(df_linear)))]
-ax1.scatter([0,1,2,3], [df_linear["mse_ols"].mean(),df_linear["mse_dols"].mean(),df_linear["mse_olsx"].mean(),df_linear["mse_dolsx"].mean()],color="black",marker='o',s=50)
-ax1.errorbar([0,1,2,3], [df_linear["mse_ols"].mean(),df_linear["mse_dols"].mean(),df_linear["mse_olsx"].mean(),df_linear["mse_dolsx"].mean()], yerr=yerrs, color="black", linewidth=1, fmt='none')
-ax1.grid(False)
+# OLS in plot 1 # 
+
+# Calculate onfidence intervals
+conf=[1.65*(df_linear["mse_ols"].std()/np.sqrt(len(df_linear))),1.65*(df_linear["mse_dols"].std()/np.sqrt(len(df_linear))),1.65*(df_linear["mse_olsx"].std()/np.sqrt(len(df_linear))),1.65*(df_linear["mse_dolsx"].std()/np.sqrt(len(df_linear)))]
+# Plot mean error
+ax1.scatter([0,1,2,3],[df_linear["mse_ols"].mean(),df_linear["mse_dols"].mean(),df_linear["mse_olsx"].mean(),df_linear["mse_dolsx"].mean()],color="black",marker='o',s=50)
+# Plot confidence intervals
+ax1.errorbar([0,1,2,3],[df_linear["mse_ols"].mean(),df_linear["mse_dols"].mean(),df_linear["mse_olsx"].mean(),df_linear["mse_dolsx"].mean()],yerr=conf,color="black",linewidth=1,fmt='none')
+# Add labels and ticks
 ax1.set_ylim(0.0155,0.0255)
 ax1.set_yticks([0.016,0.017,0.018,0.019,0.02,0.021,0.022,0.023,0.024,0.025],[0.016,0.017,0.018,0.019,0.02,0.021,0.022,0.023,0.024,0.025],fontsize=18)
 ax1.set_ylabel("Mean squared error (MSE)",size=22)
 ax1.set_xticks([0,1,2,3],['RR','DRR','RRX','DRRX'],fontsize=18)
 
-# RF in plot 2
-yerrs=[1.65 *(df_nonlinear["mse_rf"].std()/np.sqrt(len(df_nonlinear))),1.65 *(df_nonlinear["mse_drf"].std()/np.sqrt(len(df_nonlinear))),1.65 *(df_nonlinear["mse_rfx"].std()/np.sqrt(len(df_nonlinear))),1.65 *(df_nonlinear["mse_drfx"].std()/np.sqrt(len(df_nonlinear)))]
-ax2.scatter([0,1,2,3], [df_nonlinear["mse_rf"].mean(),df_nonlinear["mse_drf"].mean(),df_nonlinear["mse_rfx"].mean(),df_nonlinear["mse_drfx"].mean()], color="black", marker='o',s=50)
-ax2.errorbar([0,1,2,3], [df_nonlinear["mse_rf"].mean(),df_nonlinear["mse_drf"].mean(),df_nonlinear["mse_rfx"].mean(),df_nonlinear["mse_drfx"].mean()], yerr=yerrs, color="black", linewidth=1, fmt='none')
-ax2.grid(False)
+# RF in plot 2 # 
+
+# Calculate onfidence intervals
+yerrs=[1.65*(df_nonlinear["mse_rf"].std()/np.sqrt(len(df_nonlinear))),1.65*(df_nonlinear["mse_drf"].std()/np.sqrt(len(df_nonlinear))),1.65*(df_nonlinear["mse_rfx"].std()/np.sqrt(len(df_nonlinear))),1.65*(df_nonlinear["mse_drfx"].std()/np.sqrt(len(df_nonlinear)))]
+# Plot mean error
+ax2.scatter([0,1,2,3],[df_nonlinear["mse_rf"].mean(),df_nonlinear["mse_drf"].mean(),df_nonlinear["mse_rfx"].mean(),df_nonlinear["mse_drfx"].mean()], color="black", marker='o',s=50)
+# Plot confidence intervals
+ax2.errorbar([0,1,2,3],[df_nonlinear["mse_rf"].mean(),df_nonlinear["mse_drf"].mean(),df_nonlinear["mse_rfx"].mean(),df_nonlinear["mse_drfx"].mean()], yerr=yerrs, color="black", linewidth=1, fmt='none')
+# Add labels and ticks
 ax2.set_ylim(0.0125,0.0225)
 ax2.set_yticks([0.013,0.014,0.015,0.016,0.017,0.018,0.019,0.02,0.021,0.022],[0.013,0.014,0.015,0.016,0.017,0.018,0.019,0.02,0.021,0.022],size=18)
 ax2.yaxis.set_ticks_position('right')
 ax2.set_xticks([0,1,2,3],['RF','DRF','RFX','DRFX'],fontsize=18)
-plt.subplots_adjust(wspace=0.05)
 
 # Manually add results for the t-test
 ax1.plot([0,2],[0.0246,0.0246],linewidth=0.5,color="black")
@@ -192,6 +204,8 @@ with open("data/ols_shapes.json", 'r') as json_file:
 countries=df_linear.country.unique()
 
 ### OLS ###
+
+# Define out dictionary
 results={"country":[],"fatalities":[],"shape":[],"n":[]}
 
 # For each country
@@ -204,14 +218,16 @@ for n in countries:
     means=preds.groupby('clusters')["fatalities"].mean()
     dist=preds.groupby("clusters").size()
     
-    # Loop over clusters and append country, fatalities, the centroid, and
-    # the number of cases assigned to the pattern
+    # Loop over clusters 
     for i in list(means.index):
+        # Obtain centroid and save (converting list of lists to list)
         seq=shapes_ols[f"dolsx_{n}"][1][i]
-        results["country"].append(n)
-        results["fatalities"].append(means[i])
-        # Convert centroid into list
         results["shape"].append(sum(seq, []))
+        # Append country
+        results["country"].append(n)
+        # Append number of fatalities
+        results["fatalities"].append(means[i])
+        # And append number of observations assigned to centroid
         results["n"].append(dist[i])
 
 # Get df
@@ -220,11 +236,13 @@ results=pd.DataFrame(results)
 # Plot top dangerous shapes
 dangerous=results.sort_values(by=["fatalities"])
 
-# Initiate plot
+# Specify plot 
 fig, axs = plt.subplots(5, 4, figsize=(16, 11))
+plt.subplots_adjust(wspace=0.01)
 
 # Fill each subplot with a shape, starting from the last country in dangerous
 for c,i,j in zip(range(1,21),[0,0,0,0,1,1,1,1,2,2,2,2,3,3,3,3,4,4,4,4],[0,1,2,3,0,1,2,3,0,1,2,3,0,1,2,3,0,1,2,3]):
+    # Access observations from below (-c) to get most dangerous and plot in subplot
     axs[i, j].plot(dangerous["shape"].iloc[-c],color="black")
     axs[i, j].set_yticks([],[])
     axs[i, j].set_xticks([],[])
@@ -237,7 +255,6 @@ for c,i,j in zip(range(1,21),[0,0,0,0,1,1,1,1,2,2,2,2,3,3,3,3,4,4,4,4],[0,1,2,3,
         axs[i, j].set_title("CAR",size=29)
     else:
         axs[i, j].set_title(f"{dangerous['country'].iloc[-c]}",size=29)
-plt.subplots_adjust(wspace=0.01)
 
 # Save
 plt.savefig("out/results_dang_shapes_ols_top.eps",dpi=300,bbox_inches="tight")
@@ -246,12 +263,16 @@ plt.savefig("/Users/hannahfrank/Dropbox/Apps/Overleaf/protest_armed_conflict_dis
 plt.show()
 
 # Plot a random sample of harmless shapes, which have zero fatalities
-harmless=results.loc[results["fatalities"]==0]
-harmless = harmless.sample(n=20, random_state=30) 
+harmless = results.loc[results["fatalities"]==0]
+harmless = harmless.sample(n=20,random_state=30) 
+
+# Specify plot 
+fig, axs = plt.subplots(5, 4, figsize=(16, 11))
+plt.subplots_adjust(wspace=0.01)
 
 # Fill in each subplot with a shape in harmless
-fig, axs = plt.subplots(5, 4, figsize=(16, 11))
 for c,i,j in zip(range(0,20),[0,0,0,0,1,1,1,1,2,2,2,2,3,3,3,3,4,4,4,4],[0,1,2,3,0,1,2,3,0,1,2,3,0,1,2,3,0,1,2,3]):
+    # Access observation and plot in subplot
     axs[i, j].plot(harmless["shape"].iloc[c],color="black")
     axs[i, j].set_yticks([],[])
     axs[i, j].set_xticks([],[])
@@ -264,7 +285,6 @@ for c,i,j in zip(range(0,20),[0,0,0,0,1,1,1,1,2,2,2,2,3,3,3,3,4,4,4,4],[0,1,2,3,
         axs[i, j].set_title("CAR",size=29)
     else:
         axs[i, j].set_title(f"{harmless['country'].iloc[c]}",size=29)
-plt.subplots_adjust(wspace=0.01)
 
 # Save
 plt.savefig("out/results_dang_shapes_ols_bottom.eps",dpi=300,bbox_inches="tight")
@@ -273,6 +293,8 @@ plt.savefig("/Users/hannahfrank/Dropbox/Apps/Overleaf/protest_armed_conflict_dis
 plt.show()
 
 ### RF ###
+
+# Define out dictionary
 results={"country":[],"fatalities":[],"shape":[],"n":[]}
 
 # For each country
@@ -285,14 +307,16 @@ for n in countries:
     means=preds.groupby('clusters')["fatalities"].mean()
     dist=preds.groupby("clusters").size()
     
-    # Loop over clusters and append country, fatalities, the centroid, and
-    # the number of cases assigned to the pattern
+    # Loop over clusters 
     for i in list(means.index):
+        # Obtain centroid and save (converting list of lists to list)        
         seq=shapes_rf[f"drfx_{n}"][1][i]
-        results["country"].append(n)
-        results["fatalities"].append(means[i])
-        # Convert centroid into list
         results["shape"].append(sum(seq, []))
+        # Append country        
+        results["country"].append(n)
+        # Append number of fatalities        
+        results["fatalities"].append(means[i])
+        # And append number of observations assigned to centroid
         results["n"].append(dist[i])
 
 # Get df
@@ -301,11 +325,13 @@ results=pd.DataFrame(results)
 # Plot top dangerous shapes
 dangerous=results.sort_values(by=["fatalities"])
 
-# Initiate plot
+# Specify plot 
 fig, axs = plt.subplots(5, 4, figsize=(16, 11))
+plt.subplots_adjust(wspace=0.01)
 
 # Fill each subplot with a shape, starting from the last country in dangerous
 for c,i,j in zip(range(1,21),[0,0,0,0,1,1,1,1,2,2,2,2,3,3,3,3,4,4,4,4],[0,1,2,3,0,1,2,3,0,1,2,3,0,1,2,3,0,1,2,3]):
+    # Access observations from below (-c) to get most dangerous and plot in subplot
     axs[i, j].plot(dangerous["shape"].iloc[-c],color="black")
     axs[i, j].set_yticks([],[])
     axs[i, j].set_xticks([],[])
@@ -318,7 +344,6 @@ for c,i,j in zip(range(1,21),[0,0,0,0,1,1,1,1,2,2,2,2,3,3,3,3,4,4,4,4],[0,1,2,3,
         axs[i, j].set_title("CAR",size=29)
     else:
         axs[i, j].set_title(f"{dangerous['country'].iloc[-c]}",size=29)
-plt.subplots_adjust(wspace=0.01)
 
 # Save
 plt.savefig("out/results_dang_shapes_rf_top.eps",dpi=300,bbox_inches="tight")
@@ -327,12 +352,16 @@ plt.savefig("/Users/hannahfrank/Dropbox/Apps/Overleaf/protest_armed_conflict_dis
 plt.show()
 
 # Plot a random sample of harmless shapes, which have zero fatalities
-harmless=results.loc[results["fatalities"]==0]
-harmless = harmless.sample(n=20, random_state=30) 
+harmless = results.loc[results["fatalities"]==0]
+harmless = harmless.sample(n=20,random_state=30) 
+
+# Specify plot 
+fig, axs = plt.subplots(5, 4, figsize=(16, 11))
+plt.subplots_adjust(wspace=0.01)
 
 # Fill in each subplot with a shape in harmless
-fig, axs = plt.subplots(5, 4, figsize=(16, 11))
 for c,i,j in zip(range(0,20),[0,0,0,0,1,1,1,1,2,2,2,2,3,3,3,3,4,4,4,4],[0,1,2,3,0,1,2,3,0,1,2,3,0,1,2,3,0,1,2,3]):
+    # Access observation and plot in subplot   
     axs[i, j].plot(harmless["shape"].iloc[c],color="black")
     axs[i, j].set_yticks([],[])
     axs[i, j].set_xticks([],[])
@@ -345,7 +374,6 @@ for c,i,j in zip(range(0,20),[0,0,0,0,1,1,1,1,2,2,2,2,3,3,3,3,4,4,4,4],[0,1,2,3,
         axs[i, j].set_title("CAR",size=29)
     else:
         axs[i, j].set_title(f"{harmless['country'].iloc[c]}",size=29)
-plt.subplots_adjust(wspace=0.01)
 
 # Save
 plt.savefig("out/results_dang_shapes_rf_bottom.eps",dpi=300,bbox_inches="tight")
@@ -375,15 +403,15 @@ preprocess_min_max_group(df,"fatalities","country")
 # Make plot for Egypt
 df_s = df.loc[(df["country"]=="Egypt")]
 
-# Initiate figure
+# Specify plot 
 fig=plt.figure(figsize=(12,3))
-years=[2013,2014,2015]
+plt.tight_layout()
 
 # For each year
-for y,i in zip(years,range(len(years))):
+for y,i in zip([2013,2014,2015],range(len([2013,2014,2015]))):
     
     # Plot protest events
-    ax1=plt.subplot(1, 3, i+1)
+    ax1=plt.subplot(1, 3, i+1) # Add subplot at index i+1 (starts at 1)
     plt.plot(df_s["dd"].loc[df_s["year"]==y],df_s["n_protest_events_norm"].loc[df_s["year"]==y],linestyle="solid",color="black",linewidth=2)
     ax1.set_ylim(-0.02, 1.02)
     
@@ -397,7 +425,6 @@ for y,i in zip(years,range(len(years))):
     plt.xticks([],[])
     ax2.set_yticks([])
     ax1.set_yticks([])
-plt.tight_layout()
 
 # Save
 fig.savefig("out/covar_Egypt.eps",dpi=300,bbox_inches="tight")
@@ -408,15 +435,15 @@ plt.show()
 # Make plot for Myanmar
 df_s = df.loc[(df["country"]=="Myanmar")]
 
-# Initiate figure
+# Specify plot 
 fig=plt.figure(figsize=(12,3))
-years=[2021,2022,2023]
+plt.tight_layout()
 
 # For each year
-for y,i in zip(years,range(len(years))):
+for y,i in zip([2021,2022,2023],range(len([2021,2022,2023]))):
     
     # Plot protest events
-    ax1=plt.subplot(1, 3, i+1)
+    ax1=plt.subplot(1, 3, i+1)  # Add subplot at index i+1 (starts at 1)
     plt.plot(df_s["dd"].loc[df_s["year"]==y],df_s["n_protest_events_norm"].loc[df_s["year"]==y],linestyle="solid",color="black",linewidth=2)
     ax1.set_ylim(-0.02, 1.02)
     
@@ -430,7 +457,6 @@ for y,i in zip(years,range(len(years))):
     plt.xticks([],[])
     ax2.set_yticks([])
     ax1.set_yticks([])
-plt.tight_layout()
 
 # Save
 fig.savefig("out/covar_Myanmar.eps",dpi=300,bbox_inches="tight")
@@ -458,38 +484,57 @@ matrix_l=(matrix_l-matrix_l.min())/(matrix_l.max()-matrix_l.min())
 matrix_l=matrix_l.fillna(0) 
 matrix_l=np.array(matrix_l.T)
 
-# Select two subseqeucnes, and find actual months by checking "Egypt"
+# Select two subsequences, and find actual months by checking "Egypt"
 t1=matrix_l[100] # 05-2005 - 04-2006
-t1=t1+1.2
 t2=matrix_l[210] # 07-2014 - 06-2015
 
-# Plot the two time series
+# Verify with the library build in visualization tools
+d,cost = dtw.warping_paths(t1,t2)
+path = dtw.best_path(cost) 
+
+fig,ax = dtwvis.plot_warping(t1,t2,path)
+plt.savefig("out/dtw_check.png",dpi=300,bbox_inches="tight")
+
+fig,ax = dtwvis.plot_warpingpaths(t1,t2,cost,path,shownumbers=True)
+plt.savefig("out/dtw_check2.png",dpi=300,bbox_inches="tight")
+
+# Make prettier versions of these plots
+
+# (1) Specify time series plot
 fig, ax = plt.subplots(figsize=(7, 6))
-plt.plot(t1, label="X", color='black',linewidth=2)
+plt.tight_layout()
+
+# Plot the two time series
+t1_plot=t1+1.2
+plt.plot(t1_plot, label="X", color='black',linewidth=2)
 plt.plot(t2, label="Y", color='black',linewidth=2)
+
+# Only keep axis at bottom
 ax.spines['right'].set_visible(False)
 ax.spines['left'].set_visible(False)
 ax.spines['top'].set_visible(False)
+
+# Add ticks and label time series
 ax.set_ylim(-0.2,2.5)
 ax.text(0.4, 1.92, "Egypt (05-2005---04-2006)", fontsize=23, color="black")
 ax.text(2.1, -0.12, "Egypt (07-2014---06-2015)", fontsize=23, color="black")
 
 # Run dtw on the two time series, and obtain warping path
-dist, cost_matrix = dtw.warping_paths(t1, t2)
-dtw_path = dtw.best_path(cost_matrix) 
-print(dist)
+d,cost = dtw.warping_paths(t1, t2)
+path = dtw.best_path(cost) 
+print(d)
 
-# Save x and y indices of the warping path
-index_x, index_y = zip(*dtw_path)  
+# Save x and y matches of the warping path
+match_x,match_y = zip(*path)  
 
 # Plot the assignments of observations in dtw
-for x, y in zip(index_x, index_y):
-    plt.plot([x, y], [t1[x], t2[y]], color="gray", alpha=0.5, linewidth=1)
+for x,y in zip(match_x,match_y):
+    # Manually plot line from observation in ts1 that is matched to observation in ts2
+    plt.plot([x,y],[t1_plot[x],t2[y]],color="gray",alpha=0.5,linewidth=1)
 
 # Add ticks
 ax.set_yticks([])  
 plt.xticks([0,1,2,3,4,5,6,7,8,9,10,11],[1,2,3,4,5,6,7,8,9,10,11,12],size=22)
-plt.tight_layout()
 
 # Save
 plt.savefig("out/dtw1.eps",dpi=300,bbox_inches="tight")
@@ -497,27 +542,27 @@ plt.savefig("/Users/hannahfrank/Dropbox/Apps/Overleaf/PhD_dissertation/out/dtw1.
 plt.savefig("/Users/hannahfrank/Dropbox/Apps/Overleaf/protest_armed_conflict_diss/out/dtw1.eps",dpi=300,bbox_inches='tight')
 plt.show()
 
-# Plot cost matrix
+# (2) Plot cost matrix
 fig, ax = plt.subplots(figsize=(10, 10))
 
 # Get cost matrix and remove first row and first column which are inf 
-dist, cost_matrix = dtw.warping_paths(t1, t2)
-cost_matrix=cost_matrix[1:,1:]
+d,cost = dtw.warping_paths(t1, t2)
+cost = cost[1:,1:]
 
-# Cost matrix
-im = ax.imshow(cost_matrix,cmap='Greys',origin="lower")
+# Plot cost matrix 
+matrix = ax.imshow(pd.DataFrame(cost).T,cmap='Greys',origin="lower")
 
 # And add warping path
-plt.plot(index_x, index_y, 'black', linewidth=2)  
+plt.plot(match_x,match_y,'black',linewidth=2)  
 
 # Fill each cell in cost matrix with distance
 for x in range(12):     
     for y in range(12):  
-        ax.text(y, x, str(round(cost_matrix[x, y],2)),ha='center',va='center',color='black',fontsize=20)
+        ax.text(x,y,str(round(cost[x, y],2)),ha='center',va='center',color='black',fontsize=20)
 
 # Add labels and ticks
-plt.ylabel("Egypt (05-2005---04-2006)",size=35)
-plt.xlabel("Egypt (07-2014---06-2015)",size=35)
+plt.xlabel("Egypt (05-2005---04-2006)",size=35)
+plt.ylabel("Egypt (07-2014---06-2015)",size=35)
 plt.xticks([0,1,2,3,4,5,6,7,8,9,10,11],[1,2,3,4,5,6,7,8,9,10,11,12],size=35)
 plt.yticks([0,1,2,3,4,5,6,7,8,9,10,11],[1,2,3,4,5,6,7,8,9,10,11,12],size=35)
 plt.tight_layout()
@@ -528,14 +573,6 @@ plt.savefig("/Users/hannahfrank/Dropbox/Apps/Overleaf/PhD_dissertation/out/dtw2.
 plt.savefig("/Users/hannahfrank/Dropbox/Apps/Overleaf/protest_armed_conflict_diss/out/dtw2.eps",dpi=300,bbox_inches='tight')
 plt.show()
 
-# Verify with the library build in visualization tools
-fig, ax = dtwvis.plot_warping(t1, t2, dtw_path)
-plt.savefig("out/dtw_check.png",dpi=300,bbox_inches="tight")
-
-dist, cost_matrix = dtw.warping_paths(t1, t2)
-dtw_path = dtw.best_path(cost_matrix) 
-fig, ax = dtwvis.plot_warpingpaths(t1, t2, cost_matrix, dtw_path, shownumbers=True)
-plt.savefig("out/dtw_check2.png",dpi=300,bbox_inches="tight")
 
 
 

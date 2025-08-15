@@ -58,20 +58,25 @@ df["fatalities_log"]=np.log(df["fatalities"]+1)
 ### Step 1:  Get clusters for each country ###
 ##############################################
 
-# Get within country clusters
+# Define unique countries
 countries=df.country.unique()
+
+# Define out dfs
 final_out=pd.DataFrame()
 shapes={}
 
+# Loop through every country
 for c in countries:
     print(c)
+    
+    # Get protest time series for country
     df_s=df.loc[df["country"]==c].copy()
     ts=df["n_protest_events"].loc[df["country"]==c]
 
     # Get clusters for each country
     cluster_out = clustering(ts)
     
-    # Min-max normalize input sequences
+    # Min-max normalize input sequences (needed for regression)
     min_val = np.min(ts)
     max_val = np.max(ts)
     ts_norm = (ts - min_val) / (max_val - min_val)
@@ -89,19 +94,21 @@ for c in countries:
     df_s['n_protest_events_lag_4']=(df_s['n_protest_events'].shift(4))
     df_s['n_protest_events_lag_5']=(df_s['n_protest_events'].shift(5))
     
+    # Add static protest variables, min-max normalized    
     df_s['n_protest_events_norm_lag_1']=(df_s['n_protest_events_norm'].shift(1))
     df_s['n_protest_events_norm_lag_2']=(df_s['n_protest_events_norm'].shift(2))
     df_s['n_protest_events_norm_lag_3']=(df_s['n_protest_events_norm'].shift(3))
     df_s['n_protest_events_norm_lag_4']=(df_s['n_protest_events_norm'].shift(4))
     df_s['n_protest_events_norm_lag_5']=(df_s['n_protest_events_norm'].shift(5))
         
-    # Save ts with cluster assignments
+    # Merge to out df and save
     final_out = pd.concat([final_out, df_s])
     final_out.to_csv("data/cluster_reg.csv")  
     
-    # Save corresponding centroids
+    # Add centroids
     shapes.update({f"s_{c}":[cluster_out["s"],cluster_out["shapes"].tolist(),cluster_out["clusters"].tolist()]})
-    
+
+# Save centroids        
 with open("data/ols_shapes_reg.json", 'w') as json_file:
     json.dump(shapes, json_file)
     
@@ -117,31 +124,44 @@ with open("data/ols_shapes_reg.json", 'r') as json_file:
 score_test=-1
 for k in [3,5,7]:
         
-    # Get centroids
+    # (1) Get centroids
+    
     df_cen=pd.DataFrame()
     # For each country
     for d in shapes.keys():
-        # Access the centroids
+        # For each centroid
         for i in range(len(shapes[d][1])):
-            # For each centroid, save country, cluster number, and centroid in df
-            lst = pd.DataFrame([[d[2:], i]], columns=['country', 'clusters'])
-            add=pd.DataFrame([item for sublist in shapes[d][1][i] for item in sublist]).T
-            lst=pd.concat([lst,add],axis=1)
-            df_cen=pd.concat([df_cen,lst])
+            # save country (d[2:]) and cluster number (i) --> needed for merging later
+            row = pd.DataFrame([[d[2:], i]], columns=['country', 'clusters'])
+            # Obtain corresponding centroid, by converting list of lists into list
+            cen=[]
+            for x in range(len(shapes[d][1][i])):
+                cen.append(shapes[d][1][i][x][0])
+            # Convert list with centroid into df, so that each column is one point                    
+            centro=pd.DataFrame(cen).T
+            # Add centroid to country and cluster number
+            row=pd.concat([row,centro],axis=1)
+            # Add row to out df
+            df_cen=pd.concat([df_cen,row])
     
     # Remove missing values which occur because the centroids can have
     # different lengths
     arr=df_cen[[0,1,2,3,4,5,6,7,8,9,10,11]].values
     matrix_in = []
+    # Loop through every row and append centroid values after removing na
     for row in arr:
-        row=row.astype(float)
         matrix_in.append(row[~np.isnan(row)])
         
-    # Hierachical clustering with DTW as distance metric
+    # (2) Hierachical clustering with DTW as distance metric
+    
+    # Get condensed distance matrix
     matrix_d = dtw.distance_matrix_fast(matrix_in)    
     dist_matrix = squareform(matrix_d)
-    link_matrix = linkage(dist_matrix, method='complete')
-    clusters = fcluster(link_matrix, t=k, criterion='maxclust')
+    # and run hierachical clustering algorithm
+    link_matrix = linkage(dist_matrix,method='complete')
+    
+    # Obtain k clusters
+    clusters = fcluster(link_matrix,t=k,criterion='maxclust')
     df_cen["clusters_cen"]=clusters
     
     # Silhouette score
@@ -154,40 +174,63 @@ for k in [3,5,7]:
         df_cen_final=df_cen
         clusters_s = np.unique(clusters)
             
-        # Get centroids
+        # (3) Get centroids --> cross country protest patterns
+        
+        # Define out list
         centroids = []
         # Loop over clusters
-        for ids in clusters_s:
+        for k_num in clusters_s:
             # Get all centroids assigned to the specific cluster
-            cluster_seq = [matrix_in[i] for i, cluster in enumerate(clusters) if cluster == ids]
+            cluster_seq=[]
+            # Loop over each case
+            for i, cluster in enumerate(clusters): 
+                # and save centroid if the case belongs to cluster k
+                if cluster == k_num:
+                    cluster_seq.append(matrix_in[i])
+                    
             # Then calculate the centroid using DTW Barycenter Averaging (DBA)
             # takes the mean for time series
             cen = dtw_barycenter_averaging(cluster_seq, barycenter_size=7)
+            # Save centroid
             centroids.append(cen.ravel())
         
         # Plot centroids
         plt.figure(figsize=(10, 6))
+        # Loop over each centroid
         for i, seq in enumerate(centroids):
+            # Add subplot at index i+1 (starts at 1)
             plt.subplot(2, 3, i+1)
+            # and plot centroid
             plt.plot(seq,linewidth=2,c="black")
             plt.title(f'Cluster {i+1}',size=25)
             plt.yticks([],[])
             plt.xticks([],[])
+            
+        # Remove space between subplots    
         plt.tight_layout()
         plt.subplots_adjust(wspace=0.01)
+        
+        # Save
         plt.savefig("out/clusters_clusters.eps",dpi=300,bbox_inches="tight")
         plt.savefig("/Users/hannahfrank/Dropbox/Apps/Overleaf/PhD_dissertation/out/clusters_clusters.eps",dpi=300,bbox_inches='tight')
         plt.savefig("/Users/hannahfrank/Dropbox/Apps/Overleaf/protest_armed_conflict_diss/out/clusters_clusters.eps",dpi=300,bbox_inches='tight')
         plt.show()
 
+#################################################
+### Step 3: Prepare data for regression model ###
+#################################################
 
 # Merge centroids of the centroids with the original data
+
+# Load data from step 1, including within country clusters
 final_out=pd.read_csv("data/cluster_reg.csv",index_col=0)  
+
+# Merge across country clusters on "clusters" and country --> "clusters" denote the within country clusters (see above)
 df_final=pd.merge(final_out, df_cen_final[["country","clusters","clusters_cen"]],on=["clusters","country"])
 
 # Create a dummy set for the cluster assignments
-dummies = pd.get_dummies(df_final['clusters_cen'], prefix='cluster').astype(int)
-final_shapes_s = pd.concat([df_final, dummies], axis=1)
+dummies = pd.get_dummies(df_final['clusters_cen'],prefix='cluster').astype(int)
+final_shapes_s = pd.concat([df_final,dummies],axis=1)
 
 # Calculate lagged dependent variable
 final_shapes_s['fatalities_log_lag1'] = final_shapes_s.groupby('gw_codes')['fatalities_log'].shift(1)
