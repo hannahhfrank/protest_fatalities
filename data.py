@@ -19,6 +19,8 @@ df_s["dd"] = df_s["dd"].dt.strftime('%Y-%m')
 agg_month = pd.DataFrame(df_s.groupby(["dd","year","iso","country"]).size())
 agg_month = agg_month.reset_index()
 agg_month.rename(columns={0:"n_protest_events"},inplace=True)
+
+# Sort and convert dd to string
 agg_month = agg_month.sort_values(by=["country","year","dd"])
 agg_month["dd"]=agg_month["dd"].astype(str)
 
@@ -271,6 +273,8 @@ country_dates={156:[2018,2023], # China, 710
 
 # Make base df to merge events
 base=pd.DataFrame()
+
+# Get unique countries from dictionary
 countries=list(country_dates.keys())
 
 # Loop through every country 
@@ -283,11 +287,14 @@ for i in range(0, len(countries)):
         s = {'dd':date[x],'iso':countries[i]}
         s = pd.DataFrame(data=s,index=[0])
         base = pd.concat([base,s])  
+        
+# Sort, reset index and save dd as string        
 base = base.sort_values(by=["iso","dd"])
 base.reset_index(drop=True,inplace=True)
 base["dd"]=base["dd"].astype(str)
 
-# Merge: The observations with na are filled with zero, these have no events
+# Merge ACLED with base df: 
+# The observations with na are filled with zero, these have no events
 agg_month=pd.merge(base, agg_month[["dd","iso","n_protest_events"]],on=["dd","iso"],how="left")
 agg_month=agg_month.fillna(0)
 
@@ -321,18 +328,19 @@ agg_month.loc[agg_month["iso"]==585,"region"]="Oceania"
 agg_month.loc[agg_month["iso"]==612,"region"]="Oceania"
 agg_month.loc[agg_month["iso"]==798,"region"]="Oceania"
 
-# Assign "Palestine" --> Israel because this is a critical case
+# Assign "Palestine" --> Israel because this is a critical case and not included in GW
 agg_month[["dd","n_protest_events"]].loc[agg_month["country"]=="Palestine"]
 agg_month[["dd","n_protest_events"]].loc[agg_month["country"]=="Israel"]
 agg_month["n_protest_events"].loc[(agg_month["country"]=="Israel")]=agg_month["n_protest_events"].loc[(agg_month["country"]=="Palestine")].values+agg_month["n_protest_events"].loc[(agg_month["country"]=="Israel")].values
-agg_month["n_protest_events"].loc[(agg_month["country"]=="Israel")]
+agg_month["n_protest_events"].loc[(agg_month["country"]=="Israel")] # Check
 
-# The other territories not included in GW will be dropped. 
+# The other territories not included in GW are dropped. 
 
 # Add GW country codes 
 # http://ksgleditsch.com/data-4.html
 agg_month.country.unique()
 agg_month["gw_codes"]=999999
+
 agg_month.loc[agg_month["country"]=="Afghanistan","gw_codes"]=700
 agg_month.loc[agg_month["country"]=="Albania","gw_codes"]=339
 agg_month.loc[agg_month["country"]=="Algeria","gw_codes"]=615
@@ -603,6 +611,8 @@ agg_month.loc[agg_month["country"]=="eSwatini","gw_codes"]=572
 # Wallis and Futuna
 
 agg_month=agg_month.loc[agg_month["gw_codes"]<999999]
+
+# Reobtain year and sort variables 
 agg_month['year'] = agg_month['dd'].str[:4].astype(int)
 df=agg_month[["dd","year","gw_codes","country","n_protest_events","region"]]
 
@@ -646,7 +656,7 @@ ucdp_ss["month_date_start"] = ucdp_ss["dd_date_start"].dt.strftime('%m')
 ucdp_ss["month_date_end"] = ucdp_ss["dd_date_end"].dt.strftime('%m')
 ucdp_date = ucdp_ss[["year","dd_date_start","dd_date_end","active_year","country","country_id","date_prec","best","deaths_a","deaths_b","deaths_civilians","deaths_unknown","month_date_start","month_date_end"]].copy(deep=True)
 
-# Reset index 
+# Sort and reset index 
 ucdp_date = ucdp_date.sort_values(by=["country", "year"],ascending=True)
 ucdp_date.reset_index(drop=True, inplace=True)
 
@@ -664,16 +674,20 @@ fat = pd.DataFrame(ucdp_final.groupby(["dd","country_id"])['best'].sum())
 ucdp_fat = fat.reset_index()
 ucdp_fat.columns=["dd","gw_codes","fatalities"]
 
-# Merge with ACLED and fill na with zero, those have no events
+# Merge UCDP with ACLED data
+
+# Convert dd to string for merging and merge
 ucdp_fat["dd"]=ucdp_fat["dd"].astype(str)
 df=pd.merge(df,ucdp_fat,on=["dd","gw_codes"],how="left")
+
+# Replace missing values in fatalities with zero --> those observations have no events
 df['fatalities'] = df['fatalities'].fillna(0)
 
                                     #############
                                     ### V-dem ###
                                     #############
   
-# Load and subset   
+# Load and subset needed columns
 # Downloaded from: https://v-dem.net/data/the-v-dem-dataset/
 # Codebook: https://v-dem.net/documents/38/V-Dem_Codebook_v14.pdf                             
 vdem = pd.read_csv("data/V-Dem-CY-Full+Others-v14.csv",low_memory=False)
@@ -683,6 +697,7 @@ vdem_s.columns=["year","country","v2x_polyarchy","v2x_libdem","v2x_partipdem","v
 # Add country codes
 # http://ksgleditsch.com/data-4.html
 vdem_s["gw_codes"]=999999
+
 vdem_s.loc[vdem_s["country"]=="Afghanistan","gw_codes"]=700
 vdem_s.loc[vdem_s["country"]=="Albania","gw_codes"]=339
 vdem_s.loc[vdem_s["country"]=="Algeria","gw_codes"]=615
@@ -920,7 +935,11 @@ vdem_s.loc[vdem_s["country"]=="Eswatini","gw_codes"]=572
 vdem_s=vdem_s.loc[vdem_s["gw_codes"]!=999999]
 
 # Merge on country level
+
+# Make base df (country-year)
 base=df[["year","country","gw_codes"]].drop_duplicates(subset=["year","country"]).reset_index(drop=True)
+
+# Merge vdem to base df
 base=pd.merge(left=base,right=vdem_s[["year","gw_codes","v2x_polyarchy","v2x_libdem","v2x_partipdem","v2x_delibdem","v2x_egaldem","v2x_neopat","v2x_civlib","v2x_clphy","v2x_corr","v2x_rule"]],on=["year","gw_codes"],how="left")
 
 # Check which countries are completely missing
@@ -948,11 +967,10 @@ missing=['Andorra',
          'San Marino', 
          'Tonga',
          'Tuvalu']
-
 base = base[~base['country'].isin(missing)]
 df = df[~df['country'].isin(missing)]
 
-# Merge with ACLED and UCDP
+# Merge vdem with df on the country-year
 df=pd.merge(df,base[["year","gw_codes","v2x_polyarchy","v2x_libdem","v2x_partipdem","v2x_delibdem","v2x_egaldem","v2x_neopat","v2x_civlib","v2x_clphy","v2x_corr","v2x_rule"]],on=["year","gw_codes"],how="left")
 print(df.isnull().any())
 
@@ -961,9 +979,12 @@ print(df.isnull().any())
                             ##################
                             
 # Load wb data, previously retrived with the WB api
-wdi=pd.read_csv("data/wdi.csv",index_col=0)                            
+wdi=pd.read_csv("data/wdi.csv",index_col=0)                  
 
-# GDP per capita (current US$), on the country-year level
+# Merge on country level          
+
+# GDP per capita 
+# Make base df (country-year) and merge
 base=df[["year","country","gw_codes"]].drop_duplicates(subset=["year","country"]).reset_index(drop=True)
 base=pd.merge(left=base,right=wdi[["year","gw_codes","NY.GDP.PCAP.CD","SP.POP.TOTL"]],on=["year","gw_codes"],how="left")
 
@@ -984,7 +1005,8 @@ base_imp_final["NY.GDP.PCAP.CD"] = base_imp_final["NY.GDP.PCAP.CD"].fillna(base_
 # Merge
 df=pd.merge(df,base_imp_final[["year","gw_codes","NY.GDP.PCAP.CD"]],on=["year","gw_codes"],how="left")
 
-# Population size, on the country-year level
+# Population size
+# Make base df (country-year) and merge
 base=df[["year","country","gw_codes"]].drop_duplicates(subset=["year","country"]).reset_index(drop=True)
 base=pd.merge(left=base,right=wdi[["year","gw_codes","NY.GDP.PCAP.CD","SP.POP.TOTL"]],on=["year","gw_codes"],how="left")
 

@@ -9,8 +9,10 @@ feat_dev = ["NY.GDP.PCAP.CD", # GDP per capita (current US$)
             "SP.POP.TOTL", # Population size
             ]
 
-# Verify country codes by downloading one variable 
+# Specify countries codes, left GW and right WB
+# Get WB country codes by downloading one variable manually
 # https://data.worldbank.org/indicator/NY.GDP.PCAP.CD
+# GW codes: http://ksgleditsch.com/data-4.html
 c_codes = {'Afghanistan': [700, 'AFG'],
             'Albania': [339, 'ALB'],
             'Algeria': [615, 'DZA'],
@@ -208,42 +210,49 @@ c_codes = {'Afghanistan': [700, 'AFG'],
             'Zimbabwe': [552, 'ZWE'],
             }
 
-
-# Get country codes from dictionary
-c_codes=pd.DataFrame.from_dict(c_codes,orient='index')
+# Convert country codes from dictionary into df
+c_codes = pd.DataFrame.from_dict(c_codes,orient='index')
 c_codes = c_codes.reset_index()
 c_codes.columns = ['country','gw_codes','iso_alpha3']
 
 # Specify countries for call  
-c_codes = c_codes.loc[c_codes["iso_alpha3"]!= "XYZ"]
+c_list=list(c_codes.iso_alpha3)
+c_list=[char for char in c_list if char != "XYZ"] # Exclude Taiwan
+
+# Specify years for call
+years=list(range(1989, 2024, 1))
 
 # Define out df
 wdi = pd.DataFrame()
 
 # Get data for each year and merge
-for i in list(range(1989, 2024, 1)):
+for i in years:
     print(i)
-    wdi_s = wb.data.DataFrame(feat_dev, list(c_codes.iso_alpha3), [i])
+    wdi_s = wb.data.DataFrame(feat_dev, c_list, [i])
     wdi_s.reset_index(inplace=True)
     wdi_s["year"] = i
     wdi = pd.concat([wdi, wdi_s], ignore_index=True)  
 
-# Merge GW codes
-wdi = pd.merge(wdi,c_codes[['gw_codes','iso_alpha3',"country"]],how='left',left_on=['economy'],right_on=['iso_alpha3'])
+# Add country and country codes: Merge GW codes over WB country codes 
+wdi_final = pd.merge(wdi,c_codes[['gw_codes','iso_alpha3',"country"]],how='left',left_on=['economy'],right_on=['iso_alpha3'])
 
 # Drop duplicates WB country codes
-wdi = wdi.drop(columns=['economy'])
+wdi_final = wdi_final.drop(columns=['economy'])
 
 # Sort columns, so that year, country and country codes appear at beginning
-wdi = wdi[['country','year','iso_alpha3','gw_codes'] + [c for c in wdi.columns if c not in ['country','year','iso_alpha3','gw_codes']]]
+wdi_final = wdi_final[['country','year','iso_alpha3','gw_codes'] + [c for c in wdi_final.columns if c not in ['country','year','iso_alpha3','gw_codes']]]
 
 # Print head of df to confirm load   
 print("Obtained data")
-print(wdi.head())
+print(wdi_final.head())
+
+# Sort and reset index
+wdi_final = wdi_final.sort_values(by=["iso_alpha3", 'year'])
+wdi_final = wdi_final.reset_index(drop=True)
 
 # Save data  
-wdi.to_csv("wdi.csv") 
-print(wdi.duplicated(subset=["year","gw_codes","country"]).any())
+wdi_final.to_csv("wdi.csv") 
+print(wdi_final.duplicated(subset=["year","gw_codes","country"]).any())
 
 
 
