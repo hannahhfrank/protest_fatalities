@@ -45,7 +45,7 @@ micro_states={"Dominica":54,
               "Samoa":990}
 
 # Load data
-df=pd.read_csv("data/df.csv",index_col=0)
+df = pd.read_csv("data/df.csv",index_col=0)
 df = df[~df['gw_codes'].isin(list(micro_states.values()))]
 df = df.reset_index(drop=True)
 
@@ -69,18 +69,18 @@ shapes={}
 for c in countries:
     print(c)
     
-    # Get protest time series for country
+    # Get subset data for country
     df_s=df.loc[df["country"]==c].copy()
     ts=df["n_protest_events"].loc[df["country"]==c]
 
-    # Get clusters for each country
+    # Get clusters for each country using the protest time series
     cluster_out = clustering(ts)
     
     # Min-max normalize input sequences (needed for regression)
     min_val = np.min(ts)
     max_val = np.max(ts)
     ts_norm = (ts - min_val) / (max_val - min_val)
-    ts_norm=ts_norm.fillna(0) 
+    ts_norm = ts_norm.fillna(0) 
     df_s["n_protest_events_norm"]=ts_norm
     
     # Add cluster assignments
@@ -88,18 +88,18 @@ for c in countries:
     df_s["clusters"]=cluster_out["clusters"]
     
     # Add static protest variables
-    df_s['n_protest_events_lag_1']=(df_s['n_protest_events'].shift(1))
-    df_s['n_protest_events_lag_2']=(df_s['n_protest_events'].shift(2))
-    df_s['n_protest_events_lag_3']=(df_s['n_protest_events'].shift(3))
-    df_s['n_protest_events_lag_4']=(df_s['n_protest_events'].shift(4))
-    df_s['n_protest_events_lag_5']=(df_s['n_protest_events'].shift(5))
+    df_s['n_protest_events_lag_1']=df_s['n_protest_events'].shift(1)
+    df_s['n_protest_events_lag_2']=df_s['n_protest_events'].shift(2)
+    df_s['n_protest_events_lag_3']=df_s['n_protest_events'].shift(3)
+    df_s['n_protest_events_lag_4']=df_s['n_protest_events'].shift(4)
+    df_s['n_protest_events_lag_5']=df_s['n_protest_events'].shift(5)
     
     # Add static protest variables, min-max normalized    
-    df_s['n_protest_events_norm_lag_1']=(df_s['n_protest_events_norm'].shift(1))
-    df_s['n_protest_events_norm_lag_2']=(df_s['n_protest_events_norm'].shift(2))
-    df_s['n_protest_events_norm_lag_3']=(df_s['n_protest_events_norm'].shift(3))
-    df_s['n_protest_events_norm_lag_4']=(df_s['n_protest_events_norm'].shift(4))
-    df_s['n_protest_events_norm_lag_5']=(df_s['n_protest_events_norm'].shift(5))
+    df_s['n_protest_events_norm_lag_1']=df_s['n_protest_events_norm'].shift(1)
+    df_s['n_protest_events_norm_lag_2']=df_s['n_protest_events_norm'].shift(2)
+    df_s['n_protest_events_norm_lag_3']=df_s['n_protest_events_norm'].shift(3)
+    df_s['n_protest_events_norm_lag_4']=df_s['n_protest_events_norm'].shift(4)
+    df_s['n_protest_events_norm_lag_5']=df_s['n_protest_events_norm'].shift(5)
         
     # Merge to out df and save
     final_out = pd.concat([final_out, df_s])
@@ -124,7 +124,7 @@ with open("data/ols_shapes_reg.json", 'r') as json_file:
 score_test=-1
 for k in [3,5,7]:
         
-    # (1) Get centroids
+    # (1) Get centroids (within)
     
     df_cen=pd.DataFrame()
     # For each country
@@ -152,12 +152,12 @@ for k in [3,5,7]:
     for row in arr:
         matrix_in.append(row[~np.isnan(row)])
         
-    # (2) Hierachical clustering with DTW as distance metric
+    # (2) Hierachical clustering with DTW as distance metric --> cross country protest patterns
     
-    # Get condensed distance matrix
+    # Get condensed distance matrix using dtw for distance
     matrix_d = dtw.distance_matrix_fast(matrix_in)    
     dist_matrix = squareform(matrix_d)
-    # and run hierachical clustering algorithm
+    # and run hierachical clustering algorithm on distance matrix using method complete
     link_matrix = linkage(dist_matrix,method='complete')
     
     # Obtain k clusters
@@ -195,7 +195,12 @@ for k in [3,5,7]:
             centroids.append(cen.ravel())
         
         # Plot centroids
+        
+        # Specify plot 
         plt.figure(figsize=(10, 6))
+        plt.tight_layout()
+        plt.subplots_adjust(wspace=0.01)
+        
         # Loop over each centroid
         for i, seq in enumerate(centroids):
             # Add subplot at index i+1 (starts at 1)
@@ -206,10 +211,6 @@ for k in [3,5,7]:
             plt.yticks([],[])
             plt.xticks([],[])
             
-        # Remove space between subplots    
-        plt.tight_layout()
-        plt.subplots_adjust(wspace=0.01)
-        
         # Save
         plt.savefig("out/clusters_clusters.eps",dpi=300,bbox_inches="tight")
         plt.savefig("/Users/hannahfrank/Dropbox/Apps/Overleaf/PhD_dissertation/out/clusters_clusters.eps",dpi=300,bbox_inches='tight')

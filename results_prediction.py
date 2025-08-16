@@ -54,7 +54,7 @@ df = df.reset_index(drop=True)
 
 # Load predictions
 df_linear = pd.read_csv("data/df_linear.csv",index_col=0)
-df_nonlinear =  pd.read_csv("data/df_nonlinear.csv",index_col=0)
+df_nonlinear = pd.read_csv("data/df_nonlinear.csv",index_col=0)
 
 print("Linear models")
 print(mean_squared_error(df_linear.fatalities, df_linear.preds_ols))
@@ -122,7 +122,7 @@ plt.subplots_adjust(wspace=0.05)
 
 # OLS in plot 1 # 
 
-# Calculate onfidence intervals
+# Calculate confidence intervals
 conf=[1.65*(df_linear["mse_ols"].std()/np.sqrt(len(df_linear))),1.65*(df_linear["mse_dols"].std()/np.sqrt(len(df_linear))),1.65*(df_linear["mse_olsx"].std()/np.sqrt(len(df_linear))),1.65*(df_linear["mse_dolsx"].std()/np.sqrt(len(df_linear)))]
 # Plot mean error
 ax1.scatter([0,1,2,3],[df_linear["mse_ols"].mean(),df_linear["mse_dols"].mean(),df_linear["mse_olsx"].mean(),df_linear["mse_dolsx"].mean()],color="black",marker='o',s=50)
@@ -136,7 +136,7 @@ ax1.set_xticks([0,1,2,3],['RR','DRR','RRX','DRRX'],fontsize=18)
 
 # RF in plot 2 # 
 
-# Calculate onfidence intervals
+# Calculate confidence intervals
 yerrs=[1.65*(df_nonlinear["mse_rf"].std()/np.sqrt(len(df_nonlinear))),1.65*(df_nonlinear["mse_drf"].std()/np.sqrt(len(df_nonlinear))),1.65*(df_nonlinear["mse_rfx"].std()/np.sqrt(len(df_nonlinear))),1.65*(df_nonlinear["mse_drfx"].std()/np.sqrt(len(df_nonlinear)))]
 # Plot mean error
 ax2.scatter([0,1,2,3],[df_nonlinear["mse_rf"].mean(),df_nonlinear["mse_drf"].mean(),df_nonlinear["mse_rfx"].mean(),df_nonlinear["mse_drfx"].mean()], color="black", marker='o',s=50)
@@ -191,7 +191,7 @@ plt.show()
 
 # Load predictions
 df_linear = pd.read_csv("data/df_linear.csv",index_col=0)
-df_nonlinear =  pd.read_csv("data/df_nonlinear.csv",index_col=0)
+df_nonlinear = pd.read_csv("data/df_nonlinear.csv",index_col=0)
 
 # Load shapes
 with open("data/rf_shapes.json", 'r') as json_file:
@@ -220,8 +220,9 @@ for n in countries:
     
     # Loop over clusters 
     for i in list(means.index):
-        # Obtain centroid and save (converting list of lists to list)
+        # Obtain centroid 
         seq=shapes_ols[f"dolsx_{n}"][1][i]
+        # and save (converting list of lists to list)
         results["shape"].append(sum(seq, []))
         # Append country
         results["country"].append(n)
@@ -309,8 +310,9 @@ for n in countries:
     
     # Loop over clusters 
     for i in list(means.index):
-        # Obtain centroid and save (converting list of lists to list)        
+        # Obtain centroid       
         seq=shapes_rf[f"drfx_{n}"][1][i]
+        # and save (converting list of lists to list)  
         results["shape"].append(sum(seq, []))
         # Append country        
         results["country"].append(n)
@@ -385,7 +387,7 @@ plt.show()
 ###  Plot co-variation between protest and fatalities ###
 #########################################################
 
-# Min-max normalize protest and fatalitiy time series
+# Function to min-max normalize time series
 def preprocess_min_max_group(df, x, group):
     out = pd.DataFrame()
     for i in df[group].unique():
@@ -397,6 +399,7 @@ def preprocess_min_max_group(df, x, group):
         out = pd.concat([out, pd.DataFrame(Y)], ignore_index=True)
     df[f"{x}_norm"] = out
 
+# Min-max normalize protest and fatalitiy time series
 preprocess_min_max_group(df,"n_protest_events","country")
 preprocess_min_max_group(df,"fatalities","country")
       
@@ -470,23 +473,32 @@ plt.show()
 
 # Use Egypt as example
 y=df.loc[(df["country"]=="Egypt")].n_protest_events
-Egypt=df.loc[(df["country"]=="Egypt")].reset_index(drop=True)
 
 # Get min-max normalized subsequences with length 12
 # Adapted from: https://github.com/ThomasSchinca/ShapeF/blob/Thomas_draft/functions.py
 
+# Obtain subsequences 
+# These are the preceding win protest events for observation t
 matrix=[]
+# Starting at index w, roll through the time series
 for i in range(12,len(y)):
+    # and obtain the last w observations 
+    # these are appended into matrix    
     matrix.append(y.iloc[i-12:i])  
+    
+# Convert list of lists to array    
 matrix=np.array(matrix)
-matrix_l= pd.DataFrame(matrix).T
-matrix_l=(matrix_l-matrix_l.min())/(matrix_l.max()-matrix_l.min())
-matrix_l=matrix_l.fillna(0) 
-matrix_l=np.array(matrix_l.T)
+
+# Min-max normalize the time subsequences 
+matrix_norm=pd.DataFrame(matrix).T
+matrix_norm=(matrix_norm-matrix_norm.min())/(matrix_norm.max()-matrix_norm.min())
+matrix_norm=matrix_norm.fillna(0) 
+matrix_norm=np.array(matrix_norm.T)
 
 # Select two subsequences, and find actual months by checking "Egypt"
-t1=matrix_l[100] # 05-2005 - 04-2006
-t2=matrix_l[210] # 07-2014 - 06-2015
+Egypt=df.loc[(df["country"]=="Egypt")].reset_index(drop=True)
+t1=matrix_norm[100] # 05-2005 - 04-2006
+t2=matrix_norm[210] # 07-2014 - 06-2015
 
 # Verify with the library build in visualization tools
 d,cost = dtw.warping_paths(t1,t2)
@@ -558,7 +570,7 @@ plt.plot(match_x,match_y,'black',linewidth=2)
 # Fill each cell in cost matrix with distance
 for x in range(12):     
     for y in range(12):  
-        ax.text(x,y,str(round(cost[x, y],2)),ha='center',va='center',color='black',fontsize=20)
+        ax.text(x,y,str(round(cost[x,y],2)),ha='center',va='center',color='black',fontsize=20)
 
 # Add labels and ticks
 plt.xlabel("Egypt (05-2005---04-2006)",size=35)

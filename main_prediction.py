@@ -45,8 +45,8 @@ df = df.reset_index(drop=True)
 # Transforms
 preprocess_min_max_group(df,"fatalities","country")
 df['fatalities_norm_lag1'] = df.groupby('gw_codes')['fatalities_norm'].shift(1).fillna(0)
-df["SP.POP.TOTL_log"]=np.log(df["SP.POP.TOTL"])
-df["NY.GDP.PCAP.CD_log"]=np.log(df["NY.GDP.PCAP.CD"])
+df["SP.POP.TOTL_log"] = np.log(df["SP.POP.TOTL"])
+df["NY.GDP.PCAP.CD_log"] = np.log(df["NY.GDP.PCAP.CD"])
 
 ######################
 ### Dynamic models ###
@@ -65,7 +65,7 @@ shapes_ols={}
 for c in countries:
     print(c)
     
-    # Get time series, outcomes and X for each country
+    # Get time series, outcome and X for each country
     ts=df["n_protest_events"].loc[df["country"]==c]
     Y=df["fatalities"].loc[df["country"]==c]
     X=df[["fatalities_norm_lag1",'NY.GDP.PCAP.CD_log','SP.POP.TOTL_log',"v2x_libdem","v2x_clphy","v2x_corr","v2x_rule","v2x_civlib","v2x_neopat"]].loc[df["country"]==c]    
@@ -130,7 +130,7 @@ final_preds_linear=pd.DataFrame()
 for c in countries:
     print(c)
     
-    # Get time series, outcomes and X for each country
+    # Get time series, outcome and X for each country
     ts=df["n_protest_events"].loc[df["country"]==c]
     Y=df["fatalities"].loc[df["country"]==c]
     X=df[["fatalities_norm_lag1",'NY.GDP.PCAP.CD_log','SP.POP.TOTL_log',"v2x_libdem","v2x_clphy","v2x_corr","v2x_rule","v2x_civlib","v2x_neopat"]].loc[df["country"]==c]
