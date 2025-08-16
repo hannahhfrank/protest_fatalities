@@ -138,6 +138,8 @@ def general_model(ts, Y, model_pred=RandomForestRegressor(random_state=0),  X=No
                
     min_test=np.inf
     for ar in ar_test:
+        
+        # (1) Obtain input
 
         # Function to get list of last ar observations in series
         def lags(series):
@@ -161,21 +163,24 @@ def general_model(ts, Y, model_pred=RandomForestRegressor(random_state=0),  X=No
         # Add X variables if available 
         if X is not None:
             # Reset index to avoid misalignment
-            # Concat with X as base and delete missing observations
             X=X.reset_index(drop=True)
+            # Concat with X as base 
             in_put=pd.concat([X,in_put],axis=1)
+            # and delete missing observations
             in_put = in_put.dropna()
             
         # Make sure column names are character
         in_put.columns = in_put.columns.map(str)
                     
-        # Obtain output
-        # Reset index to avoid misalignment and 
-        # crop output to the size of the input   
+        # (2)Obtain output
+        
+        # Reset index to avoid misalignment  
         output=Y.reset_index(drop=True)
+        # Crop output to the size of the input 
         output=output.iloc[-len(in_put):]
                     
-        # Data split
+        # Data split, make sure that test window is the same
+        # while the training data may be shorted depending on value of ar.
         y_train = output[:-(len(ts)-int(0.7*len(ts)))]
         x_train = in_put[:-(len(ts)-int(0.7*len(ts)))]
         
@@ -239,64 +244,102 @@ def general_dynamic_model(ts, Y, model_pred=RandomForestRegressor(random_state=0
                 
             # Adapted from: https://github.com/ThomasSchinca/ShapeF/blob/Thomas_draft/functions.py
             # Get input matrix for training data 
-            y_s=ts.iloc[:int(0.7*len(ts))]
-            seq_matrix=[]
-            for i in range(w,len(y_s)):
-                seq_matrix.append(ts.iloc[i-w:i])   
-            seq_matrix=np.array(seq_matrix)
+            
+            # (A) Training
+            
+            # Subset training data
+            train_s=ts.iloc[:int(0.7*len(ts))]
+            
+            # Obtain subsequences for training data
+            # These are the preceding win protest events for observation t
+            sub_matrix=[]
+            # Starting at index w, roll through the time series, until end of training data
+            for i in range(w,len(train_s)):
+                # and obtain the last w observations 
+                # these are appended into matrix   
+                sub_matrix.append(ts.iloc[i-w:i])  
+            # Convert list of lists to array
+            sub_matrix=np.array(sub_matrix)
                 
             # Min-max normalize the time subsequences
-            seq_matrix_l= pd.DataFrame(seq_matrix).T
-            seq_matrix_l=(seq_matrix_l-seq_matrix_l.min())/(seq_matrix_l.max()-seq_matrix_l.min())
-            seq_matrix_l=seq_matrix_l.fillna(0) 
-            seq_matrix_l=np.array(seq_matrix_l.T)
-            seq_matrix_l=seq_matrix_l.reshape(len(seq_matrix_l),w,1)
+            sub_matrix_norm=pd.DataFrame(sub_matrix).T
+            sub_matrix_norm=(sub_matrix_norm-sub_matrix_norm.min())/(sub_matrix_norm.max()-sub_matrix_norm.min())
+            sub_matrix_norm=sub_matrix_norm.fillna(0) 
+            sub_matrix_norm=np.array(sub_matrix_norm.T)
+            
+            # Convert matrix into shape needed for clustering model
+            sub_matrix_norm=sub_matrix_norm.reshape(len(sub_matrix_norm),w,1)
                 
             # Run the clustering algorithm on the training data 
-            model.n_clusters=k
-            model_clust = model.fit(seq_matrix_l)
-            cl_train= model_clust.labels_
+            model.n_clusters=k # make sure to update k
+            model_clust = model.fit(sub_matrix_norm)
+            
+            # Get cluster assignments for training data
+            labels_train=model_clust.labels_
             
             # Get dummy set of cluster assignments
-            cl_train=pd.Series(cl_train)
-            cl_train=pd.get_dummies(cl_train).astype(int)
-            cl_b=pd.DataFrame(columns=range(k))
-            cl_final=pd.concat([cl_b,cl_train],axis=0)   
+            labels_train=pd.Series(labels_train)
+            labels_train=pd.get_dummies(labels_train).astype(int)
+            
+            # Make sure that dummy set has all clusters (only relevant for testing)
+            
+            # Make a base df with k columns
+            base=pd.DataFrame(columns=range(k))
+            # And merge training clusters
+            cl_final=pd.concat([base,labels_train],axis=0)   
+            # Fill na with zero, in case a cluster is empty (only relevant for testing)
             cl_final=cl_final.fillna(0)
             
-            # Get input matrix for test data 
-            seq_matrix=[]
-            for i in range(len(y_s),len(ts)):
-                seq_matrix.append(ts.iloc[i-w:i])
-            seq_matrix=np.array(seq_matrix)
+            # (B) Testing
+
+            # Obtain subsequences for test data
+            # These are the preceding win protest events for observation t
+            sub_matrix=[]
+            # Starting at the end of training data, roll through the time series  until end of ts           
+            for i in range(len(train_s),len(ts)):
+                # and obtain the last w observations 
+                # these are appended into matrix   
+                sub_matrix.append(ts.iloc[i-w:i])
+            # Convert list of lists to array    
+            sub_matrix=np.array(sub_matrix)
                 
             # Min-max normalize the time subsequences
-            seq_matrix_l= pd.DataFrame(seq_matrix).T
-            seq_matrix_l=(seq_matrix_l-seq_matrix_l.min())/(seq_matrix_l.max()-seq_matrix_l.min())
-            seq_matrix_l=seq_matrix_l.fillna(0) 
-            seq_matrix_l=np.array(seq_matrix_l.T)
-            seq_matrix_l=seq_matrix_l.reshape(len(seq_matrix_l),w,1)
+            sub_matrix_norm=pd.DataFrame(sub_matrix).T
+            sub_matrix_norm=(sub_matrix_norm-sub_matrix_norm.min())/(sub_matrix_norm.max()-sub_matrix_norm.min())
+            sub_matrix_norm=sub_matrix_norm.fillna(0) 
+            sub_matrix_norm=np.array(sub_matrix_norm.T)
+            
+            # Convert matrix into shape needed for clustering model            
+            sub_matrix_norm=sub_matrix_norm.reshape(len(sub_matrix_norm),w,1)
                 
             # Use the clustering model from the training data
             # to assign test subsequences to a cluster
-            cl_test = model_clust.predict(seq_matrix_l)
-            y_test_seq = model_clust.predict(seq_matrix_l) # Copy cluster series
+            labels_test = model_clust.predict(sub_matrix_norm)
+            labels_test2 = model_clust.predict(sub_matrix_norm) # Copy cluster series
             
             # Get dummy set of cluster assignments
-            cl_test=pd.Series(cl_test)
-            cl_test=pd.get_dummies(cl_test).astype(int)
-            y_t=pd.DataFrame(columns=range(k))
-            cl_test=pd.concat([y_t,cl_test],axis=0)   
+            labels_test=pd.Series(labels_test)
+            labels_test=pd.get_dummies(labels_test).astype(int)
+            
+            # Make sure that dummy set has all clusters 
+            
+            # Make a base df with k columns            
+            base=pd.DataFrame(columns=range(k))
+            # And merge testing clusters            
+            cl_test=pd.concat([base,labels_test],axis=0)   
+            # Fill na with zero, in case a cluster is empty 
             cl_test=cl_test.fillna(0)  
                 
             # Merge training and testing cluster assignments
-            # and reset index to avoid misalignment
             clusters=pd.concat([cl_final,cl_test],axis=0,ignore_index=True)
+            # and reset index to avoid misalignment
             index=list(range(len(ts)-len(clusters), len(ts)))
             clusters.set_index(pd.Index(index),inplace=True)
                     
             # (2) Predictions 
             for ar in ar_test:
+                
+                # (a) Obtain input
                 
                 # Function to get list of last ar observations in series
                 def lags(series):
@@ -333,21 +376,24 @@ def general_dynamic_model(ts, Y, model_pred=RandomForestRegressor(random_state=0
                 # Add X variables if available 
                 if X is not None:
                     # Reset index to avoid misalignment
-                    # Concat with X as base and delete missing observations
                     X=X.reset_index(drop=True)
+                    # Concat with X as base 
                     in_put=pd.concat([X,in_put],axis=1)
+                    # and delete missing observations
                     in_put = in_put.dropna()
                 
                 # Make sure column names are character
                 in_put.columns = in_put.columns.map(str)
                         
-                # Obtain output
+                # (b) Obtain output
+                
                 # Reset index to avoid misalignment and 
-                # crop output to the size of the input   
                 output=Y.reset_index(drop=True)
+                # crop output to the size of the input   
                 output=output[-len(in_put):]
         
-                # Data split
+                # Data split, make sure that test window is the same
+                # while the training data may be shorted depending on value of ar.
                 y_train = output[:-(len(ts)-int(0.7*len(ts)))]
                 x_train = in_put[:-(len(ts)-int(0.7*len(ts)))]
         
@@ -381,17 +427,17 @@ def general_dynamic_model(ts, Y, model_pred=RandomForestRegressor(random_state=0
                     para=[ar,k,w]
                     preds_final=pred
                     shapes=model_clust.cluster_centers_
-                    seq=y_test_seq
+                    seq_clusters=labels_test2
                     # If all test sequences are assigned to one cluster,
                     # s score cannot be computed --> set to na
-                    if np.unique(y_test_seq).size==1:
+                    if np.unique(labels_test2).size==1:
                         s=np.nan
                     else: 
-                        s=silhouette_score(seq_matrix_l, y_test_seq, metric="dtw") 
+                        s=silhouette_score(sub_matrix_norm, labels_test2, metric="dtw") 
 
     print(f"Final DRF {para}, with MSE: {min_test}")
     
-    return({'pred':pd.Series(preds_final),'actuals':y_test.reset_index(drop=True),"shapes":shapes,"s":s,"clusters":seq})
+    return({'pred':pd.Series(preds_final),'actuals':y_test.reset_index(drop=True),"shapes":shapes,"s":s,"clusters":seq_clusters})
     
                     
 
@@ -403,33 +449,42 @@ def clustering(ts, model=TimeSeriesKMeans(n_clusters=5,metric="dtw",max_iter_bar
             
             # Adapted from: https://github.com/ThomasSchinca/ShapeF/blob/Thomas_draft/functions.py
             
-            # Create input matrix for clustering
-            seq_matrix=[]
+            # Obtain subsequences 
+            # These are the preceding win protest events for observation t
+            sub_matrix=[]
+            # Starting at index w, roll through the time series
             for i in range(w,len(ts)):
-                seq_matrix.append(ts.iloc[i-w:i])  
-            seq_matrix=np.array(seq_matrix)
-            seq_matrix_l= pd.DataFrame(seq_matrix).T
-            seq_matrix_l=(seq_matrix_l-seq_matrix_l.min())/(seq_matrix_l.max()-seq_matrix_l.min())
-            seq_matrix_l=seq_matrix_l.fillna(0) 
-            seq_matrix_l=np.array(seq_matrix_l.T)
-            seq_matrix_l=seq_matrix_l.reshape(len(seq_matrix_l),w,1)
+                # and obtain the last w observations 
+                # these are appended into matrix   
+                sub_matrix.append(ts.iloc[i-w:i])  
+            # Convert list of lists to array
+            sub_matrix=np.array(sub_matrix)
+            
+            # Min-max normalize the time subsequences            
+            sub_matrix_norm=pd.DataFrame(sub_matrix).T
+            sub_matrix_norm=(sub_matrix_norm-sub_matrix_norm.min())/(sub_matrix_norm.max()-sub_matrix_norm.min())
+            sub_matrix_norm=sub_matrix_norm.fillna(0) 
+            sub_matrix_norm=np.array(sub_matrix_norm.T)
+            
+            # Convert matrix into shape needed for clustering model            
+            sub_matrix_norm=sub_matrix_norm.reshape(len(sub_matrix_norm),w,1)
             
             # Cluster subsequences            
-            model.n_clusters=k
-            model_clust = model.fit(seq_matrix_l)
+            model.n_clusters=k # make sure to update k
+            model_clust = model.fit(sub_matrix_norm)
             clusters=model_clust.labels_
             
             # Get s score
-            s=silhouette_score(seq_matrix_l,clusters, metric="dtw")
+            s=silhouette_score(sub_matrix_norm,clusters, metric="dtw")
             
             # If s score is larger than than test value, update results
             if s>score_test:
                 score_test=s
                 s_final=s
                 shapes_final=model_clust.cluster_centers_
-                seq_final=model_clust.labels_
+                seq_clusters=model_clust.labels_
                                             
-    return({"shapes":shapes_final,"s":s_final,"clusters":seq_final})
+    return({"shapes":shapes_final,"s":s_final,"clusters":seq_clusters})
     
             
         
