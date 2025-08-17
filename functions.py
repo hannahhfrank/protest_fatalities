@@ -172,7 +172,7 @@ def general_model(ts, Y, model_pred=RandomForestRegressor(random_state=0),  X=No
         # Make sure column names are character
         in_put.columns = in_put.columns.map(str)
                     
-        # (2)Obtain output
+        # (2) Obtain output
         
         # Reset index to avoid misalignment  
         output=Y.reset_index(drop=True)
@@ -238,6 +238,7 @@ def general_dynamic_model(ts, Y, model_pred=RandomForestRegressor(random_state=0
         Y=pd.concat([y_train,y_test])  
     
     # (1) Clustering  
+    
     min_test=np.inf
     for k in cluster_n:
         for w in w_length:
@@ -245,7 +246,7 @@ def general_dynamic_model(ts, Y, model_pred=RandomForestRegressor(random_state=0
             # Adapted from: https://github.com/ThomasSchinca/ShapeF/blob/Thomas_draft/functions.py
             # Get input matrix for training data 
             
-            # (A) Training
+            # (a) Training
             
             # Subset training data
             train_s=ts.iloc[:int(0.7*len(ts))]
@@ -281,21 +282,21 @@ def general_dynamic_model(ts, Y, model_pred=RandomForestRegressor(random_state=0
             labels_train=pd.Series(labels_train)
             labels_train=pd.get_dummies(labels_train).astype(int)
             
-            # Make sure that dummy set has all clusters (only relevant for testing)
+            # Make sure that dummy set has all clusters 
             
             # Make a base df with k columns
             base=pd.DataFrame(columns=range(k))
             # And merge training clusters
-            cl_final=pd.concat([base,labels_train],axis=0)   
-            # Fill na with zero, in case a cluster is empty (only relevant for testing)
-            cl_final=cl_final.fillna(0)
+            clu_train=pd.concat([base,labels_train],axis=0)   
+            # Fill na with zero, in case a cluster is empty 
+            clu_train=clu_train.fillna(0)
             
-            # (B) Testing
+            # (b) Testing
 
             # Obtain subsequences for test data
             # These are the preceding win protest events for observation t
             sub_matrix=[]
-            # Starting at the end of training data, roll through the time series  until end of ts           
+            # Starting at the end of training data, roll through the time series until end of ts           
             for i in range(len(train_s),len(ts)):
                 # and obtain the last w observations 
                 # these are appended into matrix   
@@ -326,17 +327,18 @@ def general_dynamic_model(ts, Y, model_pred=RandomForestRegressor(random_state=0
             # Make a base df with k columns            
             base=pd.DataFrame(columns=range(k))
             # And merge testing clusters            
-            cl_test=pd.concat([base,labels_test],axis=0)   
+            clu_test=pd.concat([base,labels_test],axis=0)   
             # Fill na with zero, in case a cluster is empty 
-            cl_test=cl_test.fillna(0)  
+            clu_test=clu_test.fillna(0)  
                 
             # Merge training and testing cluster assignments
-            clusters=pd.concat([cl_final,cl_test],axis=0,ignore_index=True)
+            clusters=pd.concat([clu_train,clu_test],axis=0,ignore_index=True)
             # and reset index to avoid misalignment
             index=list(range(len(ts)-len(clusters), len(ts)))
             clusters.set_index(pd.Index(index),inplace=True)
                     
             # (2) Predictions 
+            
             for ar in ar_test:
                 
                 # (a) Obtain input
@@ -393,7 +395,7 @@ def general_dynamic_model(ts, Y, model_pred=RandomForestRegressor(random_state=0
                 output=output[-len(in_put):]
         
                 # Data split, make sure that test window is the same
-                # while the training data may be shorted depending on value of ar.
+                # while the training data may be shorted depending on value of ar and win.
                 y_train = output[:-(len(ts)-int(0.7*len(ts)))]
                 x_train = in_put[:-(len(ts)-int(0.7*len(ts)))]
         
