@@ -248,6 +248,8 @@ for c,i,j in zip(range(1,21),[0,0,0,0,1,1,1,1,2,2,2,2,3,3,3,3,4,4,4,4],[0,1,2,3,
     axs[i, j].set_yticks([],[])
     axs[i, j].set_xticks([],[])
     axs[i, j].set_axis_off()
+    axs[i, j].set_ylim(-0.05,1.05)
+
     
     # Manually fix country names if too long and set country as title
     if dangerous['country'].iloc[-c] =='Democratic Republic of Congo':
@@ -278,6 +280,7 @@ for c,i,j in zip(range(0,20),[0,0,0,0,1,1,1,1,2,2,2,2,3,3,3,3,4,4,4,4],[0,1,2,3,
     axs[i, j].set_yticks([],[])
     axs[i, j].set_xticks([],[])
     axs[i, j].set_axis_off()
+    axs[i, j].set_ylim(-0.05,1.05)
     
     # Manually fix country names if too long and set country as title
     if harmless['country'].iloc[c] =='Democratic Republic of Congo':
@@ -338,6 +341,7 @@ for c,i,j in zip(range(1,21),[0,0,0,0,1,1,1,1,2,2,2,2,3,3,3,3,4,4,4,4],[0,1,2,3,
     axs[i, j].set_yticks([],[])
     axs[i, j].set_xticks([],[])
     axs[i, j].set_axis_off()
+    axs[i, j].set_ylim(-0.05,1.05)
     
     # Manually fix country names if too long and set country as title
     if dangerous['country'].iloc[-c] =='Democratic Republic of Congo':
@@ -368,6 +372,7 @@ for c,i,j in zip(range(0,20),[0,0,0,0,1,1,1,1,2,2,2,2,3,3,3,3,4,4,4,4],[0,1,2,3,
     axs[i, j].set_yticks([],[])
     axs[i, j].set_xticks([],[])
     axs[i, j].set_axis_off()
+    axs[i, j].set_ylim(-0.05,1.05)
     
     # Manually fix country names if too long and set country as title
     if harmless['country'].iloc[c] =='Democratic Republic of Congo':

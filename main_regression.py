@@ -208,6 +208,7 @@ for k in [3,5,7]:
             # and plot centroid
             plt.plot(seq,linewidth=2,c="black")
             plt.title(f'Cluster {i+1}',size=25)
+            plt.ylim(-0.05,1)
             plt.yticks([],[])
             plt.xticks([],[])
             
