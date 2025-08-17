@@ -1,17 +1,9 @@
 # Set working directory and load packages
 setwd('/Users/hannahfrank/protest_fatalities')
-library(lmtest)
 library(sandwich)
-library(Hmisc)
-library(plm)
-library(AER)
-library(lavaan)
-library(semPlot)
-library(ggplot2)
 library(stargazer)
 library(lmtest)
 library(car)
-library(tidyverse)
 
 # Load data
 df <- read.csv('data/final_shapes_s.csv')
