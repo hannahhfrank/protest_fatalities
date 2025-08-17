@@ -25,7 +25,9 @@ agg_month = agg_month.sort_values(by=["country","year","dd"])
 agg_month["dd"]=agg_month["dd"].astype(str)
 
 # Get dates and countries 
-# https://acleddata.com/acleddatanew/wp-content/uploads/dlm_uploads/2019/01/ACLED_Country-and-Time-Period-coverage_updatedFeb2022.pdf
+# Check coverage and country codes here:
+# https://acleddata.com/sites/default/files/wp-content-archive/uploads/dlm_uploads/2019/01/ACLED_Country-and-Time-Period-coverage_updatedFeb2022.pdf
+# https://acleddata.com/methodology/country-iso-codes
 country_dates={156:[2018,2023], # China, 710
                392:[2018,2023], # Japan, 740
                496:[2018,2023], # Mongolia, 712
