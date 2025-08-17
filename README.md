@@ -4,7 +4,7 @@ This repository contains the replication material for "From Protests to Fataliti
 - The analysis is run in Python 3.10.13 and R version 4.3.1.
 - The required python libraries are listed in requirements.txt. The following packages need to be installed for R: sandwich, stargazer, lmtest, and car.
 
-## Descriptions of files 
+## Description of files 
 - /data contains the datasets (df.csv) used for the analyses, as well as the predictions (df_linear.csv, df_nonlinear.csv) and extracted protest patterns (final_shapes_s.csv, ols_shapes.json, rf_shapes.json).
 - /out contains the visualizations and tables contained in the paper. 
 - data.py creates the dataset used for the analysis df.csv. 
