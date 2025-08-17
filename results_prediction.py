@@ -239,7 +239,7 @@ dangerous=results.sort_values(by=["fatalities"])
 
 # Specify plot 
 fig, axs = plt.subplots(5, 4, figsize=(16, 11))
-plt.subplots_adjust(wspace=0.01)
+plt.subplots_adjust(wspace=0.01,hspace=0.35)
 
 # Fill each subplot with a shape, starting from the last country in dangerous
 for c,i,j in zip(range(1,21),[0,0,0,0,1,1,1,1,2,2,2,2,3,3,3,3,4,4,4,4],[0,1,2,3,0,1,2,3,0,1,2,3,0,1,2,3,0,1,2,3]):
@@ -269,7 +269,7 @@ harmless = harmless.sample(n=20,random_state=30)
 
 # Specify plot 
 fig, axs = plt.subplots(5, 4, figsize=(16, 11))
-plt.subplots_adjust(wspace=0.01)
+plt.subplots_adjust(wspace=0.01,hspace=0.35)
 
 # Fill in each subplot with a shape in harmless
 for c,i,j in zip(range(0,20),[0,0,0,0,1,1,1,1,2,2,2,2,3,3,3,3,4,4,4,4],[0,1,2,3,0,1,2,3,0,1,2,3,0,1,2,3,0,1,2,3]):
@@ -329,7 +329,7 @@ dangerous=results.sort_values(by=["fatalities"])
 
 # Specify plot 
 fig, axs = plt.subplots(5, 4, figsize=(16, 11))
-plt.subplots_adjust(wspace=0.01)
+plt.subplots_adjust(wspace=0.01,hspace=0.35)
 
 # Fill each subplot with a shape, starting from the last country in dangerous
 for c,i,j in zip(range(1,21),[0,0,0,0,1,1,1,1,2,2,2,2,3,3,3,3,4,4,4,4],[0,1,2,3,0,1,2,3,0,1,2,3,0,1,2,3,0,1,2,3]):
@@ -359,7 +359,7 @@ harmless = harmless.sample(n=20,random_state=30)
 
 # Specify plot 
 fig, axs = plt.subplots(5, 4, figsize=(16, 11))
-plt.subplots_adjust(wspace=0.01)
+plt.subplots_adjust(wspace=0.01,hspace=0.35)
 
 # Fill in each subplot with a shape in harmless
 for c,i,j in zip(range(0,20),[0,0,0,0,1,1,1,1,2,2,2,2,3,3,3,3,4,4,4,4],[0,1,2,3,0,1,2,3,0,1,2,3,0,1,2,3,0,1,2,3]):
@@ -408,6 +408,7 @@ df_s = df.loc[(df["country"]=="Egypt")]
 
 # Specify plot 
 fig=plt.figure(figsize=(12,3))
+plt.subplots_adjust(wspace=0.01)
 plt.tight_layout()
 
 # For each year
@@ -440,6 +441,7 @@ df_s = df.loc[(df["country"]=="Myanmar")]
 
 # Specify plot 
 fig=plt.figure(figsize=(12,3))
+plt.subplots_adjust(wspace=0.01)
 plt.tight_layout()
 
 # For each year
