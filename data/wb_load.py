@@ -253,6 +253,7 @@ wdi_final = wdi_final.reset_index(drop=True)
 wdi_final.to_csv("wdi.csv") 
 print(wdi_final.duplicated(subset=["year","gw_codes","country"]).any())
 print(wdi_final.duplicated(subset=["year","country"]).any())
+print(wdi_final.duplicated(subset=["year","gw_codes"]).any())
 
 
 

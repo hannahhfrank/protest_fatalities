@@ -1,6 +1,7 @@
 import pandas as pd
 from functions import simple_imp_grouped,linear_imp_grouped
 import matplotlib.pyplot as plt
+
                                 #############
                                 ### ACLED ###
                                 #############
@@ -1044,6 +1045,7 @@ df.to_csv("data/df.csv")
 print(df.isnull().any())
 print(df.duplicated(subset=["dd","gw_codes","country"]).any())
 print(df.duplicated(subset=["dd","country"]).any())
+print(df.duplicated(subset=["dd","gw_codes"]).any())
 
 
 
