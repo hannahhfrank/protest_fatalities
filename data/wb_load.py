@@ -9,9 +9,8 @@ feat_dev = ["NY.GDP.PCAP.CD", # GDP per capita (current US$)
             "SP.POP.TOTL", # Population size
             ]
 
-# Specify countries codes, left GW and right WB
-# Get WB country codes by downloading one variable manually
-# https://data.worldbank.org/indicator/NY.GDP.PCAP.CD
+# Specify country codes, left GW and right WB
+# Get WB country codes by downloading one variable manually: https://data.worldbank.org/indicator/NY.GDP.PCAP.CD
 # GW codes: http://ksgleditsch.com/data-4.html
 c_codes = {'Afghanistan': [700, 'AFG'],
             'Albania': [339, 'ALB'],
