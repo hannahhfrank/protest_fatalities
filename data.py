@@ -616,7 +616,7 @@ agg_month=agg_month.loc[agg_month["gw_codes"]<999999]
 
 # Reobtain year and sort variables 
 agg_month['year'] = agg_month['dd'].str[:4].astype(int)
-df=agg_month[["dd","year","gw_codes","country","n_protest_events","region"]]
+df=agg_month[["dd","year","gw_codes","country","region","n_protest_events"]]
 
                                 ############
                                 ### UCDP ###
@@ -693,8 +693,8 @@ df['fatalities'] = df['fatalities'].fillna(0)
 # Downloaded from: https://v-dem.net/data/the-v-dem-dataset/
 # Codebook: https://v-dem.net/documents/38/V-Dem_Codebook_v14.pdf                             
 vdem = pd.read_csv("data/V-Dem-CY-Full+Others-v14.csv",low_memory=False)
-vdem_s=vdem[["year","country_name","v2x_polyarchy","v2x_libdem","v2x_partipdem","v2x_delibdem","v2x_egaldem","v2x_neopat","v2x_civlib","v2x_clphy","v2x_corr","v2x_rule"]]   
-vdem_s.columns=["year","country","v2x_polyarchy","v2x_libdem","v2x_partipdem","v2x_delibdem","v2x_egaldem","v2x_neopat","v2x_civlib","v2x_clphy","v2x_corr","v2x_rule"]                           
+vdem_s=vdem[["year","country_name","v2x_libdem","v2x_clphy","v2x_corr","v2x_rule","v2x_civlib","v2x_neopat"]]   
+vdem_s.columns=["year","country","v2x_libdem","v2x_clphy","v2x_corr","v2x_rule","v2x_civlib","v2x_neopat"]                           
 
 # Add country codes
 # http://ksgleditsch.com/data-4.html
@@ -942,7 +942,7 @@ vdem_s=vdem_s.loc[vdem_s["gw_codes"]!=999999]
 base=df[["year","country","gw_codes"]].drop_duplicates(subset=["year","country"]).reset_index(drop=True)
 
 # Merge vdem to base df
-base=pd.merge(left=base,right=vdem_s[["year","gw_codes","v2x_polyarchy","v2x_libdem","v2x_partipdem","v2x_delibdem","v2x_egaldem","v2x_neopat","v2x_civlib","v2x_clphy","v2x_corr","v2x_rule"]],on=["year","gw_codes"],how="left")
+base=pd.merge(left=base,right=vdem_s[["year","gw_codes","v2x_libdem","v2x_clphy","v2x_corr","v2x_rule","v2x_civlib","v2x_neopat"]],on=["year","gw_codes"],how="left")
 
 # Check which countries are completely missing
 base[base['v2x_libdem'].isna()].country.unique() 
@@ -973,7 +973,7 @@ base = base[~base['country'].isin(missing)]
 df = df[~df['country'].isin(missing)]
 
 # Merge vdem with df on the country-year
-df=pd.merge(df,base[["year","gw_codes","v2x_polyarchy","v2x_libdem","v2x_partipdem","v2x_delibdem","v2x_egaldem","v2x_neopat","v2x_civlib","v2x_clphy","v2x_corr","v2x_rule"]],on=["year","gw_codes"],how="left")
+df=pd.merge(df,base[["year","gw_codes","v2x_libdem","v2x_clphy","v2x_corr","v2x_rule","v2x_civlib","v2x_neopat"]],on=["year","gw_codes"],how="left")
 print(df.isnull().any())
 
                             ##################
@@ -1032,11 +1032,20 @@ df=pd.merge(df,base_imp_final[["year","gw_codes","SP.POP.TOTL"]],on=["year","gw_
 # Remove countries completely missing in WB data
 df = df[~df['country'].isin(["North Korea","Taiwan","Venezuela"])]
 
+# Check datatypes and convert floats to integer
+df.dtypes
+df['n_protest_events']=df['n_protest_events'].astype('int64')
+df['fatalities']=df['fatalities'].astype('int64')
+
 # Save
 df=df.sort_values(by=["country","dd"])
 df=df.reset_index(drop=True)
 df.to_csv("data/df.csv")  
 print(df.isnull().any())
-print(df.duplicated().any())
+print(df.duplicated(subset=["dd","gw_codes","country"]).any())
+print(df.duplicated(subset=["dd","country"]).any())
+
+
+
 
 
