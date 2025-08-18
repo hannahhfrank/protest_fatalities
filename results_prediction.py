@@ -501,10 +501,14 @@ matrix_norm=(matrix_norm-matrix_norm.min())/(matrix_norm.max()-matrix_norm.min()
 matrix_norm=matrix_norm.fillna(0) 
 matrix_norm=np.array(matrix_norm.T)
 
-# Select two subsequences, and find actual months by checking "Egypt"
+# Select two subsequences
+t1=matrix_norm[100] 
+t2=matrix_norm[210] 
+
+# Find actual months by checking "Egypt" and matrix
 Egypt=df.loc[(df["country"]=="Egypt")].reset_index(drop=True)
-t1=matrix_norm[100] # 05-2005 - 04-2006
-t2=matrix_norm[210] # 07-2014 - 06-2015
+matrix[100] # 05-2005 - 04-2006
+matrix[210] # 07-2014 - 06-2015
 
 # Verify with the library build in visualization tools
 d,cost = dtw.warping_paths(t1,t2)
@@ -523,9 +527,9 @@ fig, ax = plt.subplots(figsize=(7, 6))
 plt.tight_layout()
 
 # Plot the two time series
-t1_plot=t1+1.2
-plt.plot(t1_plot, label="X", color='black',linewidth=2)
-plt.plot(t2, label="Y", color='black',linewidth=2)
+t1_plot=t1+1.2 # only for plotting to avoid that time series overlap
+plt.plot(t1_plot,color='black',linewidth=2)
+plt.plot(t2,color='black',linewidth=2)
 
 # Only keep axis at bottom
 ax.spines['right'].set_visible(False)
@@ -567,7 +571,7 @@ fig, ax = plt.subplots(figsize=(10, 10))
 d,cost = dtw.warping_paths(t1, t2)
 cost = cost[1:,1:]
 
-# Plot cost matrix 
+# Plot cost matrix, transpose to get same result as build in visualization
 matrix = ax.imshow(pd.DataFrame(cost).T,cmap='Greys',origin="lower")
 
 # And add warping path
