@@ -1038,6 +1038,9 @@ df.dtypes
 df['n_protest_events']=df['n_protest_events'].astype('int64')
 df['fatalities']=df['fatalities'].astype('int64')
 
+# Check that df is complete
+print(df.groupby(['country', 'year']).size().unique())
+
 # Save
 df=df.sort_values(by=["country","dd"])
 df=df.reset_index(drop=True)
