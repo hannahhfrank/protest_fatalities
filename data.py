@@ -21,7 +21,7 @@ agg_month = pd.DataFrame(df_s.groupby(["dd","year","iso","country"]).size())
 agg_month = agg_month.reset_index()
 agg_month.rename(columns={0:"n_protest_events"},inplace=True)
 
-# Sort and convert dd to string
+# Sort and convert dd to string/object
 agg_month = agg_month.sort_values(by=["country","year","dd"])
 agg_month["dd"]=agg_month["dd"].astype(str)
 
@@ -679,7 +679,7 @@ ucdp_fat.columns=["dd","gw_codes","fatalities"]
 
 # Merge UCDP with ACLED data
 
-# Convert dd to string for merging and merge
+# Convert dd to string/object for merging and merge
 ucdp_fat["dd"]=ucdp_fat["dd"].astype(str)
 df=pd.merge(df,ucdp_fat,on=["dd","gw_codes"],how="left")
 
@@ -1046,7 +1046,7 @@ print(df.isnull().any())
 print(df.duplicated(subset=["dd","gw_codes","country"]).any())
 print(df.duplicated(subset=["dd","country"]).any())
 print(df.duplicated(subset=["dd","gw_codes"]).any())
-
+df.dtypes
 
 
 

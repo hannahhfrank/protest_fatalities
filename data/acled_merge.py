@@ -19,7 +19,7 @@ df = pd.concat([df, civilian], ignore_index=True)
 
 
 df.to_csv("acled_all_events.csv")  
-
+print(df.duplicated().any())
 
 
 

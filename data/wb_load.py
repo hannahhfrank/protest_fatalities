@@ -254,7 +254,7 @@ wdi_final.to_csv("wdi.csv")
 print(wdi_final.duplicated(subset=["year","gw_codes","country"]).any())
 print(wdi_final.duplicated(subset=["year","country"]).any())
 print(wdi_final.duplicated(subset=["year","gw_codes"]).any())
-
+wdi_final.dtypes
 
 
 
