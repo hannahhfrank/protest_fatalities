@@ -16,27 +16,98 @@ df$cluster_4<-as.factor(df$cluster_4)
 df$cluster_5<-as.factor(df$cluster_5)
 
 # Remove missing values
-MISSING <- is.na(df$n_protest_events_norm_lag_1 ) |
+miss <- is.na(df$n_protest_events_norm_lag_1 ) |
   is.na(df$n_protest_events_norm_lag_2) |
   is.na(df$n_protest_events_norm_lag_3) |
   is.na(df$fatalities_log_lag1) 
-df_s <- subset(df, subset = !MISSING)
+df_s <- subset(df, subset = !miss)
 
 # Linear regression models
 
-lm1 <- lm(fatalities_log ~ n_protest_events_norm + n_protest_events_norm_lag_1 + n_protest_events_norm_lag_2 + n_protest_events_norm_lag_3 + fatalities_log_lag1+NY.GDP.PCAP.CD_log+SP.POP.TOTL_log+v2x_libdem+v2x_clphy+v2x_corr+v2x_rule+v2x_civlib+v2x_neopat, data = df_s)
+lm1 <- lm(fatalities_log ~ n_protest_events_norm + 
+            n_protest_events_norm_lag_1 + 
+            n_protest_events_norm_lag_2 + 
+            n_protest_events_norm_lag_3 + 
+            fatalities_log_lag1 + 
+            NY.GDP.PCAP.CD_log + 
+            SP.POP.TOTL_log + 
+            v2x_libdem + 
+            v2x_clphy + 
+            v2x_corr + 
+            v2x_rule + 
+            v2x_civlib + 
+            v2x_neopat, data = df_s)
 summary(lm1)
 
-lm2 <- lm(fatalities_log ~ n_protest_events_norm + n_protest_events_norm_lag_1 + n_protest_events_norm_lag_2 + n_protest_events_norm_lag_3 + cluster_1 + cluster_2 + cluster_3 + cluster_5 + fatalities_log_lag1+NY.GDP.PCAP.CD_log+SP.POP.TOTL_log+v2x_libdem+v2x_clphy+v2x_corr+v2x_rule+v2x_civlib+v2x_neopat, data = df_s)
+lm2 <- lm(fatalities_log ~ n_protest_events_norm + 
+            n_protest_events_norm_lag_1 + 
+            n_protest_events_norm_lag_2 + 
+            n_protest_events_norm_lag_3 + 
+            cluster_1 + 
+            cluster_2 + 
+            cluster_3 + 
+            cluster_5 + 
+            fatalities_log_lag1 + 
+            NY.GDP.PCAP.CD_log + 
+            SP.POP.TOTL_log + 
+            v2x_libdem + 
+            v2x_clphy + 
+            v2x_corr + 
+            v2x_rule + 
+            v2x_civlib + 
+            v2x_neopat, data = df_s)
 summary(lm2)
 
-lm3 <- lm(fatalities_log ~ n_protest_events_norm + n_protest_events_norm_lag_1 + n_protest_events_norm_lag_2 + n_protest_events_norm_lag_3 + fatalities_log_lag1 +NY.GDP.PCAP.CD_log+SP.POP.TOTL_log+v2x_libdem+v2x_clphy+v2x_corr+v2x_rule+v2x_civlib+v2x_neopat + as.factor(country), data = df_s)
+lm3 <- lm(fatalities_log ~ n_protest_events_norm + 
+            n_protest_events_norm_lag_1 + 
+            n_protest_events_norm_lag_2 + 
+            n_protest_events_norm_lag_3 + 
+            fatalities_log_lag1 + 
+            NY.GDP.PCAP.CD_log + 
+            SP.POP.TOTL_log + 
+            v2x_libdem + 
+            v2x_clphy + 
+            v2x_corr + 
+            v2x_rule + 
+            v2x_civlib + 
+            v2x_neopat + 
+            as.factor(country), data = df_s)
 summary(lm3)
 
-lm4 <- lm(fatalities_log ~ cluster_1 + cluster_2 + cluster_3 + cluster_5 + fatalities_log_lag1 +NY.GDP.PCAP.CD_log+SP.POP.TOTL_log+v2x_libdem+v2x_clphy+v2x_corr+v2x_rule+v2x_civlib+v2x_neopat+ as.factor(country), data = df_s)
+lm4 <- lm(fatalities_log ~ cluster_1 + 
+            cluster_2 + 
+            cluster_3 + 
+            cluster_5 + 
+            fatalities_log_lag1 +
+            NY.GDP.PCAP.CD_log +
+            SP.POP.TOTL_log +
+            v2x_libdem +
+            v2x_clphy +
+            v2x_corr +
+            v2x_rule +
+            v2x_civlib +
+            v2x_neopat + 
+            as.factor(country), data = df_s)
 summary(lm4)
 
-lm5 <- lm(fatalities_log ~ n_protest_events_norm + n_protest_events_norm_lag_1 + n_protest_events_norm_lag_2 + n_protest_events_norm_lag_3 + cluster_1 + cluster_2 + cluster_3 + cluster_5 +fatalities_log_lag1  +NY.GDP.PCAP.CD_log+SP.POP.TOTL_log+v2x_libdem+v2x_clphy+v2x_corr+v2x_rule+v2x_civlib+v2x_neopat + as.factor(country), data = df_s)
+lm5 <- lm(fatalities_log ~ n_protest_events_norm + 
+            n_protest_events_norm_lag_1 +
+            n_protest_events_norm_lag_2 +
+            n_protest_events_norm_lag_3 + 
+            cluster_1 + 
+            cluster_2 + 
+            cluster_3 + 
+            cluster_5 + 
+            fatalities_log_lag1 +
+            NY.GDP.PCAP.CD_log +
+            SP.POP.TOTL_log +
+            v2x_libdem +
+            v2x_clphy +
+            v2x_corr +
+            v2x_rule +
+            v2x_civlib +
+            v2x_neopat + 
+            as.factor(country), data = df_s)
 summary(lm5)
 
 # Calculate clustered standard errors
@@ -61,19 +132,27 @@ cl_robust5 <- coeftest(lm5, vcov = clustered_se5)
 cl_robust5
 
 # F-test 
-f_test_lm1 <- linearHypothesis(lm2, c("cluster_11","cluster_21","cluster_31","cluster_51"), vcov = vcovHC(lm2, type = "HC0", cluster = ~ df_s$country))
-f_test_lm4 <- linearHypothesis(lm4, c("cluster_11","cluster_21","cluster_31","cluster_51"), vcov = vcovHC(lm4, type = "HC0", cluster = ~ df_s$country))
-f_test_lm5 <- linearHypothesis(lm5, c("cluster_11","cluster_21","cluster_31","cluster_51"), vcov = vcovHC(lm5, type = "HC0", cluster = ~ df_s$country))
+f_test_lm1 <- linearHypothesis(lm2, 
+                               c("cluster_11","cluster_21","cluster_31","cluster_51"), 
+                               vcov = vcovHC(lm2, type = "HC0", cluster = ~ df_s$country))
+
+f_test_lm4 <- linearHypothesis(lm4, 
+                               c("cluster_11","cluster_21","cluster_31","cluster_51"), 
+                               vcov = vcovHC(lm4, type = "HC0", cluster = ~ df_s$country))
+
+f_test_lm5 <- linearHypothesis(lm5, 
+                               c("cluster_11","cluster_21","cluster_31","cluster_51"), 
+                               vcov = vcovHC(lm5, type = "HC0", cluster = ~ df_s$country))
 
 # Function to add starts to p-values for F-test
-add_stars <- function(p_value) {
-  if (p_value < 0.001) {
+p_stars <- function(p) {
+  if (p < 0.001) {
     return("***")
-  } else if (p_value < 0.01) {
+  } else if (p < 0.01) {
     return("**")
-  } else if (p_value < 0.05) {
+  } else if (p < 0.05) {
     return("*")
-  } else if (p_value < 0.1) {
+  } else if (p < 0.1) {
     return("o")
   } else {
     return("")
@@ -81,9 +160,9 @@ add_stars <- function(p_value) {
 }
 
 # Add stars to test statistic in F-test, these are manually added to the regression table
-f_test_lm1_star <- paste0(round(f_test_lm1$F[2], 2), add_stars(f_test_lm1$`Pr(>F)`[2]))
-f_test_lm4_star <- paste0(round(f_test_lm4$F[2], 2), add_stars(f_test_lm4$`Pr(>F)`[2]))
-f_test_lm5_star <- paste0(round(f_test_lm5$F[2], 2), add_stars(f_test_lm5$`Pr(>F)`[2]))
+f_test_lm1_star <- paste0(round(f_test_lm1$F[2], 2), p_stars(f_test_lm1$`Pr(>F)`[2]))
+f_test_lm4_star <- paste0(round(f_test_lm4$F[2], 2), p_stars(f_test_lm4$`Pr(>F)`[2]))
+f_test_lm5_star <- paste0(round(f_test_lm5$F[2], 2), p_stars(f_test_lm5$`Pr(>F)`[2]))
 
 # Build regression table and save
 stargazer(cl_robust1, cl_robust2, cl_robust3, cl_robust4, cl_robust5,  # Models
